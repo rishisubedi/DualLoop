@@ -1,40 +1,63 @@
 import json
 import time
 
+def determine_priority(company, description, title):
+    full_text = f"{company} {description} {title}".lower()
+    
+    # Tier 1: FinTech & Banks
+    fintech_keywords = ["bank", "fintech", "capital", "quant", "hedge fund", "finance", "payment", "trading"]
+    if any(kw in full_text for kw in fintech_keywords):
+        return 1, "Tier 1 (FinTech/Bank)"
+        
+    # Tier 2: Pure Tech
+    tech_keywords = ["ai", "tech", "software", "platform", "cloud", "startup", "data"]
+    if any(kw in full_text for kw in tech_keywords):
+        return 2, "Tier 2 (Pure Tech)"
+        
+    # Tier 3: General
+    return 3, "Tier 3 (General)"
+
 def run_agent1():
-    print("Agent 1 [Sponsorship Qualifier]: Initializing semantic filter (Sponsorship & 2027 Grad Schemes)...")
+    print("Agent 1 [Sponsorship Qualifier]: Initializing semantic filter...")
     time.sleep(1)
     
-    # Mocking real-world scraped jobs for demonstration
+    # Note: In a production environment, this mock data array would be replaced 
+    # with a call to a live job board API (e.g., Adzuna, Reed, or a RapidAPI job scraper).
+    # Direct HTML scraping of LinkedIn/Indeed from a local cron job often gets IP blocked.
     mock_jobs = [
         {
             "id": "JOB_001",
-            "title": "Senior AI Engineer (FinTech)",
+            "title": "Senior AI Engineer",
             "company": "QuantEdge Capital",
             "location": "London, UK",
-            "description": "We are seeking an AI engineer with deep knowledge of Python, AWS, and RAG architectures. You will build financial risk models using LLMs and LangGraph. Visa sponsorship (Tier 2 Skilled Worker) is available for outstanding international candidates.",
-            "required_skills": ["Python", "AWS", "RAG", "LangGraph", "Financial Risk"]
-        },
-        {
-            "id": "JOB_002",
-            "title": "Backend Python Developer",
-            "company": "UK Retail Bank",
-            "location": "Edinburgh, UK",
-            "description": "Looking for a strong Python backend dev with FastAPI and SQL experience. Note: We are currently unable to provide skilled worker visa sponsorship for this role. Must have right to work in the UK.",
-            "required_skills": ["Python", "FastAPI", "SQL"]
+            "description": "Building financial risk models. Visa sponsorship available.",
+            "required_skills": ["Python", "AWS", "RAG", "Financial Risk"]
         },
         {
              "id": "JOB_005",
              "title": "AI Quant Developer - Graduate Scheme (Sept 2027)",
              "company": "TopTier Hedge Fund",
              "location": "London, UK",
-             "description": "Our September 2027 Graduate Scheme is now open for applications. Seeking exceptional talent with Python, SQL, and AI modeling skills. We provide full visa sponsorship for our international graduate cohort.",
+             "description": "Our September 2027 Graduate Scheme is open. Full visa sponsorship.",
              "required_skills": ["Python", "SQL", "AI Modeling"]
+        },
+        {
+             "id": "JOB_006",
+             "title": "Machine Learning Engineer",
+             "company": "DeepMind Startup",
+             "location": "London, UK",
+             "description": "Pure AI research platform. Licensed sponsor.",
+             "required_skills": ["Python", "AWS", "XGBoost"]
+        },
+        {
+             "id": "JOB_007",
+             "title": "Data Scientist",
+             "company": "UK Supermarket Retail",
+             "location": "London, UK",
+             "description": "General retail analytics. Tier 2 sponsorship offered.",
+             "required_skills": ["Python", "SQL"]
         }
     ]
-    
-    print(f"Agent 1: Scraped {len(mock_jobs)} job postings. Analyzing for explicit sponsorship flags, 2027 Grad Schemes, and skill overlap...\n")
-    time.sleep(1)
     
     qualified_jobs = []
     
@@ -45,24 +68,14 @@ def run_agent1():
         
         # 1. Negative Guardrail
         if "unable to provide" in desc or "no sponsorship" in desc or "must have right to work" in desc:
-            print(f"[-] {job['id']} | {job['company']} - {job['title']}")
-            print("    Status: PRUNED_NO_SPONSORSHIP (Explicitly denied)")
             continue
             
-        # 2. Positive Identification (Sponsorship or 2027 Grad Scheme)
+        # 2. Positive Identification
         is_sponsored = "visa sponsorship" in full_text or "tier 2" in full_text or "licensed sponsor" in full_text
         is_grad_scheme = "graduate scheme" in full_text or "graduate program" in full_text
         is_2027 = "2027" in full_text
         
-        if is_sponsored and is_grad_scheme and is_2027:
-            sponsorship_flag = "GRAD_SCHEME_2027_WITH_SPONSORSHIP"
-        elif is_grad_scheme and is_2027:
-             sponsorship_flag = "GRAD_SCHEME_2027_ASSUMED_SPONSOR" # Many top grad schemes sponsor, worth keeping
-        elif is_sponsored:
-            sponsorship_flag = "EXPLICIT_SPONSORSHIP"
-        else:
-            print(f"[-] {job['id']} | {job['company']} - {job['title']}")
-            print("    Status: PRUNED_AMBIGUOUS (No explicit sponsorship or 2027 grad scheme identified.)")
+        if not (is_sponsored or (is_grad_scheme and is_2027)):
             continue
             
         # 3. Skill Overlap Check
@@ -72,13 +85,21 @@ def run_agent1():
         match_score = len(overlap) / len(job_skills) if job_skills else 0
         
         if match_score >= 0.5:
-            print(f"[+] {job['id']} | {job['company']} - {job['title']}")
-            print(f"    Status: QUALIFIED (Category: {sponsorship_flag} | Skill Match: {match_score*100:.0f}%)")
-            qualified_jobs.append(job)
-        else:
-            print(f"[-] {job['id']} | {job['company']} - {job['title']}")
-            print(f"    Status: PRUNED_LOW_SKILL_MATCH (Skill Match: {match_score*100:.0f}%)")
+            # 4. Apply Prioritization
+            priority_level, priority_label = determine_priority(job['company'], job['description'], job['title'])
             
+            job['priority_level'] = priority_level
+            job['priority_label'] = priority_label
+            job['match_score'] = match_score
+            qualified_jobs.append(job)
+
+    # Sort by Priority (1 is highest) then by Skill Match (Descending)
+    qualified_jobs.sort(key=lambda x: (x['priority_level'], -x['match_score']))
+    
+    print(f"Agent 1: Prioritized Qualified Roles:\n")
+    for j in qualified_jobs:
+        print(f"[{j['priority_label']}] {j['company']} - {j['title']} (Skill Match: {j['match_score']*100:.0f}%)")
+
     # Update state
     try:
         with open("state.json", "r") as f:
@@ -93,8 +114,6 @@ def run_agent1():
         with open("qualified_jobs.json", "w") as f:
             json.dump(qualified_jobs, f, indent=2)
             
-        print(f"\nAgent 1: Run complete. {len(qualified_jobs)} jobs qualified. State metrics updated.")
-        
     except Exception as e:
          print(f"Error updating state: {e}")
 
