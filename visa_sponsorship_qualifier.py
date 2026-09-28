@@ -4,21 +4,18 @@ import urllib.request
 import urllib.parse
 import re
 
-def determine_priority(company, description, title):
+def determine_priority(company, description, title, is_target_grad):
     full_text = f"{company} {description} {title}".lower()
     
-    # Tier 1: FinTech & Banks
-    fintech_keywords = ["bank", "fintech", "capital", "quant", "hedge fund", "finance", "payment", "trading"]
-    if any(kw in full_text for kw in fintech_keywords):
-        return 1, "Tier 1 (FinTech/Bank)"
-        
-    # Tier 2: Pure Tech
-    tech_keywords = ["ai", "tech", "software", "platform", "cloud", "startup", "data", "anthropic"]
-    if any(kw in full_text for kw in tech_keywords):
-        return 2, "Tier 2 (Pure Tech)"
-        
-    # Tier 3: General
-    return 3, "Tier 3 (General)"
+    fintech_tech_keywords = ["bank", "fintech", "capital", "quant", "hedge fund", "finance", "trading", "ai", "tech", "data", "machine learning", "analytics"]
+    is_fintech_tech = any(kw in full_text for kw in fintech_tech_keywords)
+    
+    if is_target_grad and is_fintech_tech:
+        return 1, "GOLD STANDARD"
+    elif is_target_grad or is_fintech_tech:
+        return 2, "SILVER STANDARD"
+    else:
+        return 3, "BRONZE STANDARD"
 
 def search_duckduckgo_html(query):
     # Sends a request to DuckDuckGo HTML search to bypass JS requirements
@@ -115,13 +112,9 @@ def run_visa_sponsorship_qualifier():
         job['category'] = "[GRAD SCHEME 2027]" if is_target_grad else "[SPONSORED]"
             
         # 3. Prioritization
-        if is_target_grad:
-            job['priority_level'] = 0
-            job['priority_label'] = "Tier 0 (Target 2027 Grad Scheme)"
-        else:
-            priority_level, priority_label = determine_priority(job['company'], job['description'], job['title'])
-            job['priority_level'] = priority_level
-            job['priority_label'] = priority_label
+        priority_level, priority_label = determine_priority(job['company'], job['description'], job['title'], is_target_grad)
+        job['priority_level'] = priority_level
+        job['priority_label'] = priority_label
         job['match_score'] = 0.85 
         qualified_jobs.append(job)
 

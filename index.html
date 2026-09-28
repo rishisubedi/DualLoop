@@ -100,6 +100,9 @@
             font-size: 0.75rem; font-weight: 700; margin-right: 0.5rem; margin-bottom: 0.5rem;
         }
         .badge-sponsored { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .badge-gold { background: rgba(250, 204, 21, 0.2); color: #facc15; border: 1px solid rgba(250, 204, 21, 0.4); }
+        .badge-silver { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.4); }
+        .badge-bronze { background: rgba(180, 83, 9, 0.2); color: #fb923c; border: 1px solid rgba(180, 83, 9, 0.4); }
         .badge-tier { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
     </style>
 </head>
@@ -177,13 +180,18 @@
                     jobs.forEach(job => {
                         let sponsoredClass = job.category.includes('SPONSORED') ? 'badge-sponsored' : 'badge-sponsored';
                         
+                        let tierClass = "badge-tier";
+                        if (job.priority_label.includes('GOLD')) tierClass = "badge-gold";
+                        else if (job.priority_label.includes('SILVER')) tierClass = "badge-silver";
+                        else if (job.priority_label.includes('BRONZE')) tierClass = "badge-bronze";
+                        
                         container.innerHTML += `
                         <div class="job-card">
                             <div class="job-info">
                                 <h3>${job.title}</h3>
                                 <div class="job-company">${job.company}</div>
                                 <div>
-                                    <span class="badge badge-tier">${job.priority_label}</span>
+                                    <span class="badge ${tierClass}">${job.priority_label}</span>
                                     <span class="badge ${sponsoredClass}">${job.category.replace('[','').replace(']','')}</span>
                                 </div>
                                 <div class="job-desc">${job.description}</div>
