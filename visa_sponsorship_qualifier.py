@@ -130,8 +130,8 @@ def run_visa_sponsorship_qualifier():
     
     for j in top_5_jobs:
         print(f"{j['category']} [{j['priority_label']}] {j['company']} - {j['title']}")
-        print(f"🔗 URL: {j['url']}")
-        print(f"📝 {j['description']}\n")
+        print(f"URL: {j['url']}")
+        print(f"Desc: {j['description']}\n")
 
     # Update state
     try:
