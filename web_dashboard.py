@@ -52,8 +52,8 @@ class AgentDashboardHandler(http.server.SimpleHTTPRequestHandler):
 if __name__ == "__main__":
     PORT = 8080
     print("==================================================")
-    print(f"🚀 Dual-Loop Agent GUI active!")
-    print(f"🌐 Open your browser to: http://localhost:{PORT}")
+    print(f"Dual-Loop Agent GUI active!")
+    print(f"Open your browser to: http://localhost:{PORT}")
     print("==================================================")
     with socketserver.TCPServer(("", PORT), AgentDashboardHandler) as httpd:
         httpd.serve_forever()
