@@ -1,0 +1,17 @@
+{
+  "deadline": "2027-09-29T00:00:00Z",
+  "user_profile": {
+    "fact_bank": null,
+    "target_location": null,
+    "primary_software_track": null
+  },
+  "metrics": {
+    "jobs_scraped": 0,
+    "jobs_qualified": 0,
+    "applications_tailored": 0,
+    "applications_submitted": 0,
+    "interviews_secured": 0,
+    "skill_gaps": []
+  },
+  "pipeline_state": "INITIALIZED"
+}
