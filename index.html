@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual-Loop Agent Control Center</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #0d1117; color: #c9d1d9; padding: 2rem; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { color: #58a6ff; border-bottom: 1px solid #30363d; padding-bottom: 10px; }
+        .panel { background-color: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 20px; margin-bottom: 20px; }
+        .btn { background-color: #238636; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-right: 10px; transition: 0.2s; }
+        .btn:hover { background-color: #2ea043; }
+        .btn:disabled { background-color: #21262d; color: #8b949e; cursor: not-allowed; }
+        pre { background-color: #010409; padding: 15px; border-radius: 6px; overflow-x: auto; border: 1px solid #30363d; color: #e6edf3; }
+        .stats { display: flex; gap: 20px; margin-bottom: 20px; }
+        .stat-box { background-color: #161b22; padding: 15px; border-radius: 6px; border: 1px solid #30363d; flex: 1; text-align: center; }
+        .stat-box h3 { margin: 0; color: #8b949e; font-size: 14px; }
+        .stat-box p { margin: 10px 0 0; font-size: 24px; font-weight: bold; color: #58a6ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Dual-Loop Agent Control Center</h1>
+        
+        <div class="stats" id="stats-container">
+            <div class="stat-box"><h3>Jobs Scraped</h3><p id="stat-scraped">-</p></div>
+            <div class="stat-box"><h3>Jobs Qualified</h3><p id="stat-qualified">-</p></div>
+            <div class="stat-box"><h3>Resumes Tailored</h3><p id="stat-tailored">-</p></div>
+        </div>
+
+        <div class="panel">
+            <h2>Outbound Loop (Job Engine)</h2>
+            <p>Run these agents to scan the market and generate custom applications.</p>
+            <button class="btn" id="btn-agent1" onclick="runAgent('agent1')">Run VisaSponsorshipQualifier</button>
+            <button class="btn" id="btn-agent2" onclick="runAgent('agent2')">Run ProfileAlignmentEngine</button>
+        </div>
+
+        <div class="panel">
+            <h2>Inbound Loop (Prep Engine)</h2>
+            <p>Run these agents to generate daily challenges based on market gaps.</p>
+            <button class="btn" id="btn-agent5" onclick="runAgent('agent5')">Generate Daily Micro-Challenge</button>
+        </div>
+
+        <div class="panel">
+            <h2>Terminal Output</h2>
+            <pre id="terminal">System initialized. Ready to execute local agents...</pre>
+        </div>
+    </div>
+
+    <script>
+        function log(msg) {
+            const term = document.getElementById('terminal');
+            term.innerText = msg + '\n' + term.innerText;
+        }
+
+        async function fetchState() {
+            try {
+                const res = await fetch('/api/state');
+                const state = await res.json();
+                document.getElementById('stat-scraped').innerText = state.metrics.jobs_scraped;
+                document.getElementById('stat-qualified').innerText = state.metrics.jobs_qualified;
+                document.getElementById('stat-tailored').innerText = state.metrics.applications_tailored;
+            } catch (e) {
+                console.error("Failed to fetch state");
+            }
+        }
+
+        async function runAgent(agentId) {
+            const btn = document.getElementById(`btn-${agentId}`);
+            btn.disabled = true;
+            btn.innerText = "Executing...";
+            log(`[SYSTEM] Starting ${agentId}...`);
+            
+            try {
+                const res = await fetch(`/api/run/${agentId}`, { method: 'POST' });
+                const data = await res.json();
+                log(`[OUTPUT]\n${data.log}`);
+                await fetchState();
+            } catch (e) {
+                log(`[ERROR] Failed to run ${agentId}.`);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = btn.innerText.replace("Executing...", "Run ");
+                // Reset text hack
+                if(agentId === 'agent1') btn.innerText = "Run VisaSponsorshipQualifier";
+                if(agentId === 'agent2') btn.innerText = "Run ProfileAlignmentEngine";
+                if(agentId === 'agent5') btn.innerText = "Generate Daily Micro-Challenge";
+            }
+        }
+
+        // Init
+        fetchState();
+    </script>
+</body>
+</html>
