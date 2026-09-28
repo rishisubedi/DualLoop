@@ -109,7 +109,7 @@ def run_visa_sponsorship_qualifier():
             continue
             
         # Add a specific tag for the UI
-        job['category'] = "🟢 [SPONSORED]" if is_sponsored else "🎓 [GRAD SCHEME]"
+        job['category'] = "[SPONSORED]" if is_sponsored else "[GRAD SCHEME]"
             
         # 3. Prioritization
         priority_level, priority_label = determine_priority(job['company'], job['description'], job['title'])
