@@ -31,50 +31,29 @@
         .container { max-width: 1000px; margin: 0 auto; }
 
         h1 {
-            font-weight: 700;
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
+            font-weight: 700; font-size: 2.5rem; margin-bottom: 0.5rem;
             background: linear-gradient(to right, #60a5fa, #a78bfa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -0.5px;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
         
         .subtitle { color: var(--text-muted); margin-bottom: 3rem; font-size: 1.1rem; }
 
         .glass-panel {
-            background: var(--panel-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        
-        .glass-panel:hover {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
-            border-color: rgba(255, 255, 255, 0.15);
+            background: var(--panel-bg); backdrop-filter: blur(12px); border: 1px solid var(--border-color);
+            border-radius: 12px; padding: 2rem; margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2.5rem; }
 
         .stat-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 1.5rem;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
+            background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color);
+            border-radius: 10px; padding: 1.5rem; text-align: center; position: relative; overflow: hidden;
         }
         
         .stat-card::before {
             content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-            background: linear-gradient(to right, transparent, var(--accent), transparent);
-            opacity: 0.5;
+            background: linear-gradient(to right, transparent, var(--accent), transparent); opacity: 0.5;
         }
 
         .stat-value { font-size: 2.5rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem; }
@@ -85,44 +64,43 @@
         .btn-group { display: flex; gap: 1rem; flex-wrap: wrap; }
 
         .btn {
-            background: rgba(59, 130, 246, 0.1);
-            color: #60a5fa;
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            background: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s ease; display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem;
         }
+        .btn:hover:not(:disabled) { background: rgba(59, 130, 246, 0.2); transform: translateY(-1px); }
+        .btn:disabled { background: rgba(255, 255, 255, 0.05); color: #64748b; cursor: not-allowed; }
 
-        .btn:hover:not(:disabled) {
-            background: rgba(59, 130, 246, 0.2);
-            border-color: rgba(59, 130, 246, 0.5);
-            transform: translateY(-1px);
+        .btn-apply {
+            background: #10b981; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; 
+            text-decoration: none; font-weight: 600; font-size: 0.9rem;
+            display: inline-block; transition: background 0.2s; border: none;
         }
-
-        .btn:disabled { background: rgba(255, 255, 255, 0.05); color: #64748b; border-color: rgba(255, 255, 255, 0.1); cursor: not-allowed; }
+        .btn-apply:hover { background: #059669; }
 
         .terminal-container {
-            background: #0f172a;
-            border: 1px solid #1e293b;
-            border-radius: 8px;
-            padding: 1rem;
-            height: 300px;
-            overflow-y: auto;
-            font-family: 'Fira Code', 'Courier New', Courier, monospace;
-            font-size: 0.9rem;
-            color: #38bdf8;
-            line-height: 1.5;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+            background: #0f172a; border: 1px solid #1e293b; border-radius: 8px;
+            padding: 1rem; height: 200px; overflow-y: auto; font-family: monospace;
+            font-size: 0.9rem; color: #38bdf8; line-height: 1.5; margin-bottom: 1rem;
         }
 
-        .log-entry { margin-bottom: 0.5rem; }
-        .log-time { color: #64748b; margin-right: 0.5rem; }
+        /* Job Cards Styling */
+        .jobs-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; margin-top: 1.5rem; }
+        .job-card {
+            background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color);
+            border-radius: 8px; padding: 1.5rem; display: flex; justify-content: space-between;
+            align-items: center; transition: background 0.2s;
+        }
+        .job-card:hover { background: rgba(255, 255, 255, 0.06); }
+        .job-info h3 { margin-bottom: 0.25rem; font-size: 1.1rem; color: #fff; }
+        .job-company { color: #60a5fa; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; }
+        .job-desc { color: #94a3b8; font-size: 0.85rem; line-height: 1.4; max-width: 600px; }
+        .badge {
+            display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; 
+            font-size: 0.75rem; font-weight: 700; margin-right: 0.5rem; margin-bottom: 0.5rem;
+        }
+        .badge-sponsored { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .badge-tier { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
     </style>
 </head>
 <body>
@@ -133,7 +111,7 @@
         <div class="stats-grid" id="stats-container">
             <div class="stat-card">
                 <div class="stat-value" id="stat-scraped">0</div>
-                <div class="stat-label">Web Jobs Scraped (48h)</div>
+                <div class="stat-label">Web Jobs Scraped</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="stat-qualified">0</div>
@@ -146,30 +124,25 @@
         </div>
 
         <div class="glass-panel">
-            <h2>Outbound Loop: Live Web Search Engine</h2>
+            <h2>Outbound Loop: Application Engine</h2>
             <div class="btn-group">
-                <button class="btn" id="btn-agent1" onclick="runAgent('agent1')">
-                    🔍 Scan Web for Live Sponsorship Roles
-                </button>
-                <button class="btn" id="btn-agent2" onclick="runAgent('agent2')">
-                    📄 Generate Tailored Resumes
-                </button>
+                <button class="btn" id="btn-agent1" onclick="runAgent('agent1')">Scan Web for Sponsored Roles</button>
+                <button class="btn" id="btn-agent2" onclick="runAgent('agent2')">Generate Tailored Resumes</button>
             </div>
+            <div id="jobs-container" class="jobs-grid"></div>
         </div>
 
         <div class="glass-panel">
             <h2>Inbound Loop: Interview Prep</h2>
             <div class="btn-group">
-                <button class="btn" id="btn-agent5" onclick="runAgent('agent5')">
-                    🧠 Generate Daily Micro-Challenge
-                </button>
+                <button class="btn" id="btn-agent5" onclick="runAgent('agent5')">Generate Daily Micro-Challenge</button>
             </div>
         </div>
 
         <div class="glass-panel">
             <h2>Live Telemetry</h2>
             <div class="terminal-container" id="terminal">
-                <div class="log-entry"><span class="log-time">[SYSTEM]</span> Agent framework initialized. UI upgraded to Enterprise Edition.</div>
+                <div style="color: #64748b">[SYSTEM] Agent framework initialized.</div>
             </div>
         </div>
     </div>
@@ -178,14 +151,8 @@
         function log(msg, type="INFO") {
             const term = document.getElementById('terminal');
             const time = new Date().toLocaleTimeString('en-GB');
-            const color = type === "ERROR" ? "#f87171" : (type === "OUTPUT" ? "#a78bfa" : "#38bdf8");
-            
-            const entry = document.createElement('div');
-            entry.className = 'log-entry';
-            entry.style.color = color;
-            entry.innerHTML = `<span class="log-time">[${time}]</span> ${msg.replace(/\\n/g, '<br>')}`;
-            
-            term.appendChild(entry);
+            const color = type === "OUTPUT" ? "#a78bfa" : "#38bdf8";
+            term.innerHTML += `<div style="color: ${color}"><span style="color: #64748b">[${time}]</span> ${msg.replace(/\\n/g, '<br>')}</div>`;
             term.scrollTop = term.scrollHeight;
         }
 
@@ -196,17 +163,44 @@
                 document.getElementById('stat-scraped').innerText = state.metrics.jobs_scraped;
                 document.getElementById('stat-qualified').innerText = state.metrics.jobs_qualified;
                 document.getElementById('stat-tailored').innerText = state.metrics.applications_tailored;
-            } catch (e) {
-                console.error("Failed to fetch state");
-            }
+            } catch (e) { }
+        }
+
+        async function fetchJobs() {
+            try {
+                const res = await fetch('/api/qualified_jobs');
+                const jobs = await res.json();
+                const container = document.getElementById('jobs-container');
+                container.innerHTML = '';
+                
+                if(jobs.length > 0) {
+                    jobs.forEach(job => {
+                        let sponsoredClass = job.category.includes('SPONSORED') ? 'badge-sponsored' : 'badge-sponsored';
+                        
+                        container.innerHTML += `
+                        <div class="job-card">
+                            <div class="job-info">
+                                <h3>${job.title}</h3>
+                                <div class="job-company">${job.company}</div>
+                                <div>
+                                    <span class="badge badge-tier">${job.priority_label}</span>
+                                    <span class="badge ${sponsoredClass}">${job.category.replace('[','').replace(']','')}</span>
+                                </div>
+                                <div class="job-desc">${job.description}</div>
+                            </div>
+                            <div>
+                                <a href="${job.url}" target="_blank" class="btn-apply">Apply Now &rarr;</a>
+                            </div>
+                        </div>`;
+                    });
+                }
+            } catch (e) { }
         }
 
         async function runAgent(agentId) {
             const btn = document.getElementById(`btn-${agentId}`);
             const originalText = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = `⚙️ Executing Engine...`;
-            
+            btn.disabled = true; btn.innerHTML = `Executing...`;
             log(`Triggered execution for ${agentId}...`, "INFO");
             
             try {
@@ -219,15 +213,16 @@
                     }
                 }
                 await fetchState();
+                if(agentId === 'agent1') await fetchJobs();
             } catch (e) {
                 log(`Failed to run ${agentId}. Network error.`, "ERROR");
             } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalText;
+                btn.disabled = false; btn.innerHTML = originalText;
             }
         }
 
         fetchState();
+        fetchJobs(); // Load existing jobs on startup
     </script>
 </body>
 </html>

@@ -20,6 +20,17 @@ class AgentDashboardHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return
             
+        elif self.path == '/api/qualified_jobs':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            try:
+                with open('qualified_jobs.json', 'rb') as f:
+                    self.wfile.write(f.read())
+            except Exception:
+                self.wfile.write(json.dumps([]).encode())
+            return
+            
         return super().do_GET()
 
     def do_POST(self):
