@@ -154,6 +154,19 @@ class AgentDashboardHandler(http.server.SimpleHTTPRequestHandler):
             except Exception as e:
                 self.send_response(500)
                 self.end_headers()
+                
+        elif self.path.startswith('/api/remove_application/'):
+            job_id = self.path.split('/')[-1]
+            try:
+                conn = sqlite3.connect(DB_NAME)
+                c = conn.cursor()
+                c.execute("DELETE FROM applied_jobs WHERE id = ?", (job_id,))
+                conn.commit()
+                conn.close()
+                self._send_json({"status": "success"})
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
         else:
             self.send_response(404)
             self.end_headers()
