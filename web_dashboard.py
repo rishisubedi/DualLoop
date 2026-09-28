@@ -101,6 +101,17 @@ class AgentDashboardHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps([]).encode())
             return
             
+        elif self.path == '/api/prep_material':
+            self.send_response(200)
+            self.send_header('Content-type', 'text/markdown; charset=utf-8')
+            self.end_headers()
+            try:
+                with open('daily_challenge.md', 'r', encoding='utf-8') as f:
+                    self.wfile.write(f.read().encode('utf-8'))
+            except Exception as e:
+                self.wfile.write(b"No prep material generated yet. Click 'Generate Daily Micro-Challenge' to begin.")
+            return
+
         return super().do_GET()
 
     def do_POST(self):

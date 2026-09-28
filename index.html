@@ -114,7 +114,24 @@
         .badge-silver { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.4); }
         .badge-bronze { background: rgba(180, 83, 9, 0.2); color: #fb923c; border: 1px solid rgba(180, 83, 9, 0.4); }
         .badge-tier { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        
+        /* Markdown Rendering Styles */
+        .markdown-body { color: #cbd5e1; font-size: 0.95rem; line-height: 1.6; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); margin-top: 1rem; }
+        .markdown-body h1 { font-size: 1.5rem; margin-bottom: 1rem; margin-top: 0; background: none; -webkit-text-fill-color: #fff; color: #fff; }
+        .markdown-body h2 { font-size: 1.25rem; margin-top: 1.5rem; margin-bottom: 0.75rem; color: #60a5fa; }
+        .markdown-body h3 { font-size: 1.1rem; margin-top: 1.25rem; margin-bottom: 0.5rem; color: #38bdf8; }
+        .markdown-body p { margin-bottom: 1rem; }
+        .markdown-body ul { margin-left: 1.5rem; margin-bottom: 1rem; }
+        .markdown-body li { margin-bottom: 0.25rem; }
+        .markdown-body code { background: rgba(0,0,0,0.4); padding: 0.2rem 0.4rem; border-radius: 4px; font-family: monospace; color: #a78bfa; }
+        .markdown-body pre { background: #0f172a; padding: 1rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1rem; border: 1px solid #1e293b; }
+        .markdown-body pre code { background: none; padding: 0; color: #e2e8f0; }
+        .markdown-body table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+        .markdown-body th, .markdown-body td { padding: 0.75rem; border: 1px solid rgba(255,255,255,0.1); text-align: left; }
+        .markdown-body th { background: rgba(255,255,255,0.05); color: #e2e8f0; }
+        
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -151,9 +168,12 @@
         </div>
 
         <div class="glass-panel">
-            <h2>Inbound Loop: Interview Prep</h2>
-            <div class="btn-group">
-                <button class="btn" id="btn-agent5" onclick="runAgent('agent5')">Generate Daily Micro-Challenge</button>
+            <h2>Inbound Loop: Interview Prep & Market Intel</h2>
+            <div class="btn-group" style="margin-bottom: 1rem;">
+                <button class="btn" id="btn-agent5" onclick="runAgent('agent5')">Generate Market Analysis & Coding Challenge</button>
+            </div>
+            <div id="prep-container" class="markdown-body">
+                <div style="color: #64748b; font-style: italic;">No prep material loaded. Click the button above to analyze the market and generate coding materials.</div>
             </div>
         </div>
 
@@ -364,6 +384,21 @@
             }
         }
 
+        async function fetchPrepMaterial() {
+            try {
+                const res = await fetch('/api/prep_material');
+                const text = await res.text();
+                const container = document.getElementById('prep-container');
+                if (text.includes('No prep material generated yet')) {
+                    container.innerHTML = `<div style="color: #64748b; font-style: italic;">${text}</div>`;
+                } else {
+                    container.innerHTML = marked.parse(text);
+                }
+            } catch (e) {
+                console.error("Failed to load prep material");
+            }
+        }
+
         async function runAgent(agentId) {
             const btn = document.getElementById(`btn-${agentId}`);
             const originalText = btn.innerHTML;
@@ -381,6 +416,7 @@
                 }
                 await fetchState();
                 if(agentId === 'agent1') await fetchJobs();
+                if(agentId === 'agent5') await fetchPrepMaterial();
             } catch (e) {
                 log(`Failed to run ${agentId}. Network error.`, "ERROR");
             } finally {
@@ -389,8 +425,9 @@
         }
 
         fetchState();
-        fetchAppliedJobs(); // Load applied jobs immediately
-        fetchJobs();        // Load existing jobs on startup
+        fetchAppliedJobs();
+        fetchJobs();
+        fetchPrepMaterial(); // Load prep on startup
     </script>
 </body>
 </html>
