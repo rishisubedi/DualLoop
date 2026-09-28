@@ -84,7 +84,7 @@ def run_visa_sponsorship_qualifier():
             {"id": "JOB_LIVE2", "title": "AI Engineer - FinTech", "company": "Sequence", "location": "London, UK", "description": "Posted 12h ago. Building financial/billing AI platforms. £115K - £130K. Visa Sponsorship available.", "required_skills": ["Python", "AWS", "Finance"], "url": "https://jobs.ashbyhq.com/sequence"},
             {"id": "JOB_LIVE3", "title": "Back-end Engineer (AI Workflows)", "company": "Magentic", "location": "London, UK", "description": "Posted 24h ago. Data-intensive systems and AI workflows. Visa sponsorship available.", "required_skills": ["Python", "Data", "AI"], "url": "https://jobs.ashbyhq.com/magentic"},
             {"id": "JOB_LIVE4", "title": "Platform Infrastructure Engineer", "company": "Remanence", "location": "London, UK", "description": "Posted 36h ago. ML infrastructure, Kubernetes, and Python. Visa sponsorship & relocation.", "required_skills": ["Python", "Kubernetes", "AWS"], "url": "https://jobs.ashbyhq.com/remanence"},
-            {"id": "JOB_LIVE5", "title": "Applied Scientist (Internship/Grad)", "company": "Mistral AI", "location": "London, UK", "description": "Posted 42h ago. Pre-training LLMs. Graduate scheme. Visa sponsorship and relocation.", "required_skills": ["Python", "ML", "AI"], "url": "https://jobs.ashbyhq.com/mistral"}
+            {"id": "JOB_LIVE5", "title": "Quantitative AI Dev - Grad Scheme 2027", "company": "Jane Street", "location": "London, UK", "description": "Posted 1h ago. Must have a graduation date between August 2027 and Oct 2027. Full Tier 2 sponsorship provided.", "required_skills": ["Python", "AI", "Math"], "url": "https://jobs.ashbyhq.com/janestreet"}
         ]
         
     print(f"Scraped {len(scraped_jobs)} raw roles. Applying strict sponsorship/grad-scheme filters...")
@@ -100,20 +100,28 @@ def run_visa_sponsorship_qualifier():
         if "unable to provide" in desc or "no sponsorship" in desc or "right to work required" in desc:
             continue
             
-        # 2. Strict Positive Identification (Must be sponsored OR Grad Scheme)
+        # 2. Strict Positive Identification
         is_sponsored = "visa sponsorship" in full_text or "tier 2" in full_text or "skilled worker" in full_text or "sponsor" in full_text
-        is_grad_scheme = "graduate scheme" in full_text or "graduate program" in full_text
         
-        if not (is_sponsored or is_grad_scheme):
+        # New Requirement: Graduate scheme with graduation date between Aug and Oct 2027
+        is_grad_scheme = "graduate scheme" in full_text or "graduate program" in full_text or "grad scheme" in full_text
+        target_dates = ["august 2027", "september 2027", "october 2027", "aug 2027", "sep 2027", "sept 2027", "oct 2027"]
+        is_target_grad = is_grad_scheme and any(date in full_text for date in target_dates)
+        
+        if not (is_sponsored or is_target_grad):
             continue
             
         # Add a specific tag for the UI
-        job['category'] = "[SPONSORED]" if is_sponsored else "[GRAD SCHEME]"
+        job['category'] = "[GRAD SCHEME 2027]" if is_target_grad else "[SPONSORED]"
             
         # 3. Prioritization
-        priority_level, priority_label = determine_priority(job['company'], job['description'], job['title'])
-        job['priority_level'] = priority_level
-        job['priority_label'] = priority_label
+        if is_target_grad:
+            job['priority_level'] = 0
+            job['priority_label'] = "Tier 0 (Target 2027 Grad Scheme)"
+        else:
+            priority_level, priority_label = determine_priority(job['company'], job['description'], job['title'])
+            job['priority_level'] = priority_level
+            job['priority_label'] = priority_label
         job['match_score'] = 0.85 
         qualified_jobs.append(job)
 
