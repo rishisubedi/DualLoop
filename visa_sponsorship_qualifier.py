@@ -88,6 +88,15 @@ def run_visa_sponsorship_qualifier():
     
     qualified_jobs = []
     
+    # Load applied jobs to filter them out
+    applied_jobs = []
+    try:
+        with open("state.json", "r") as f:
+            state = json.load(f)
+            applied_jobs = state.get('applied_jobs', [])
+    except:
+        pass
+    
     for job in scraped_jobs:
         desc = job['description'].lower()
         title = job['title'].lower()
@@ -95,6 +104,8 @@ def run_visa_sponsorship_qualifier():
         
         # 1. Negative Guardrail
         if "unable to provide" in desc or "no sponsorship" in desc or "right to work required" in desc:
+            continue
+        if job['id'] in applied_jobs:
             continue
             
         # 2. Strict Positive Identification

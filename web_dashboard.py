@@ -50,6 +50,21 @@ class AgentDashboardHandler(http.server.SimpleHTTPRequestHandler):
             else:
                 self.send_response(404)
                 self.end_headers()
+        elif self.path.startswith('/api/apply/'):
+            job_id = self.path.split('/')[-1]
+            try:
+                with open('state.json', 'r') as f:
+                    state = json.load(f)
+                if 'applied_jobs' not in state:
+                    state['applied_jobs'] = []
+                if job_id not in state['applied_jobs']:
+                    state['applied_jobs'].append(job_id)
+                with open('state.json', 'w') as f:
+                    json.dump(state, f, indent=2)
+                self._send_json({"status": "success"})
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
         else:
             self.send_response(404)
             self.end_headers()
