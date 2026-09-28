@@ -25,8 +25,35 @@ class AgentDashboardHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header('Content-type', 'application/json')
             self.end_headers()
             try:
-                with open('qualified_jobs.json', 'rb') as f:
-                    self.wfile.write(f.read())
+                with open('qualified_jobs.json', 'r') as f:
+                    qualified = json.load(f)
+                
+                applied_ids = set()
+                try:
+                    with open('state.json', 'r') as f:
+                        state = json.load(f)
+                        for j in state.get('applied_jobs', []):
+                            if isinstance(j, dict):
+                                applied_ids.add(j.get('id'))
+                            else:
+                                applied_ids.add(j)
+                except Exception:
+                    pass
+                    
+                filtered = [q for q in qualified if q.get('id') not in applied_ids]
+                self.wfile.write(json.dumps(filtered).encode('utf-8'))
+            except Exception:
+                self.wfile.write(json.dumps([]).encode())
+            return
+            
+        elif self.path == '/api/applied_jobs':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            try:
+                with open('state.json', 'rb') as f:
+                    state = json.load(f)
+                    self.wfile.write(json.dumps(state.get('applied_jobs', [])).encode())
             except Exception:
                 self.wfile.write(json.dumps([]).encode())
             return
@@ -50,15 +77,33 @@ class AgentDashboardHandler(http.server.SimpleHTTPRequestHandler):
             else:
                 self.send_response(404)
                 self.end_headers()
-        elif self.path.startswith('/api/apply/'):
-            job_id = self.path.split('/')[-1]
+        elif self.path == '/api/apply':
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            job_data = json.loads(post_data.decode('utf-8'))
+            
+            import time
+            job_data['applied_timestamp'] = time.time()
+            
             try:
                 with open('state.json', 'r') as f:
                     state = json.load(f)
+                
                 if 'applied_jobs' not in state:
                     state['applied_jobs'] = []
-                if job_id not in state['applied_jobs']:
-                    state['applied_jobs'].append(job_id)
+                
+                # Check if already applied (handling transition from string IDs to objects)
+                already_applied = False
+                for i, existing in enumerate(state['applied_jobs']):
+                    if isinstance(existing, str) and existing == job_data['id']:
+                        state['applied_jobs'][i] = job_data # Upgrade it to object
+                        already_applied = True
+                    elif isinstance(existing, dict) and existing.get('id') == job_data['id']:
+                        already_applied = True
+                        
+                if not already_applied:
+                    state['applied_jobs'].append(job_data)
+                    
                 with open('state.json', 'w') as f:
                     json.dump(state, f, indent=2)
                 self._send_json({"status": "success"})
