@@ -3,6 +3,36 @@ import socketserver
 import json
 import subprocess
 import os
+import time
+import sqlite3
+
+DB_NAME = 'career_agent.db'
+
+def init_db():
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS applied_jobs (
+                    id TEXT PRIMARY KEY,
+                    title TEXT,
+                    company TEXT,
+                    url TEXT,
+                    applied_timestamp REAL,
+                    status TEXT
+                )''')
+    # Migrate existing data from state.json if present
+    try:
+        with open('state.json', 'r') as f:
+            state = json.load(f)
+            for j in state.get('applied_jobs', []):
+                if isinstance(j, dict):
+                    c.execute("INSERT OR IGNORE INTO applied_jobs (id, title, company, url, applied_timestamp, status) VALUES (?, ?, ?, ?, ?, ?)", 
+                              (j['id'], j.get('title',''), j.get('company',''), j.get('url',''), j.get('applied_timestamp', time.time()), 'Applied'))
+    except Exception as e:
+        print(f"Migration check: {e}")
+    conn.commit()
+    conn.close()
+
+init_db()
 
 class AgentDashboardHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
@@ -14,8 +44,17 @@ class AgentDashboardHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header('Content-type', 'application/json')
             self.end_headers()
             try:
-                with open('state.json', 'rb') as f:
-                    self.wfile.write(f.read())
+                with open('state.json', 'r') as f:
+                    state = json.load(f)
+                
+                # Get accurate applied count from DB
+                conn = sqlite3.connect(DB_NAME)
+                c = conn.cursor()
+                c.execute("SELECT COUNT(*) FROM applied_jobs")
+                state['applied_db_count'] = c.fetchone()[0]
+                conn.close()
+                
+                self.wfile.write(json.dumps(state).encode())
             except Exception as e:
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return
@@ -28,17 +67,11 @@ class AgentDashboardHandler(http.server.SimpleHTTPRequestHandler):
                 with open('qualified_jobs.json', 'r') as f:
                     qualified = json.load(f)
                 
-                applied_ids = set()
-                try:
-                    with open('state.json', 'r') as f:
-                        state = json.load(f)
-                        for j in state.get('applied_jobs', []):
-                            if isinstance(j, dict):
-                                applied_ids.add(j.get('id'))
-                            else:
-                                applied_ids.add(j)
-                except Exception:
-                    pass
+                conn = sqlite3.connect(DB_NAME)
+                c = conn.cursor()
+                c.execute("SELECT id FROM applied_jobs")
+                applied_ids = {r[0] for r in c.fetchall()}
+                conn.close()
                     
                 filtered = [q for q in qualified if q.get('id') not in applied_ids]
                 self.wfile.write(json.dumps(filtered).encode('utf-8'))
@@ -51,10 +84,20 @@ class AgentDashboardHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header('Content-type', 'application/json')
             self.end_headers()
             try:
-                with open('state.json', 'rb') as f:
-                    state = json.load(f)
-                    self.wfile.write(json.dumps(state.get('applied_jobs', [])).encode())
-            except Exception:
+                conn = sqlite3.connect(DB_NAME)
+                c = conn.cursor()
+                c.execute("SELECT id, title, company, url, applied_timestamp, status FROM applied_jobs ORDER BY applied_timestamp DESC")
+                rows = c.fetchall()
+                conn.close()
+                
+                jobs = []
+                for r in rows:
+                    jobs.append({
+                        "id": r[0], "title": r[1], "company": r[2], 
+                        "url": r[3], "applied_timestamp": r[4], "status": r[5]
+                    })
+                self.wfile.write(json.dumps(jobs).encode('utf-8'))
+            except Exception as e:
                 self.wfile.write(json.dumps([]).encode())
             return
             
@@ -77,35 +120,36 @@ class AgentDashboardHandler(http.server.SimpleHTTPRequestHandler):
             else:
                 self.send_response(404)
                 self.end_headers()
+                
         elif self.path == '/api/apply':
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
             job_data = json.loads(post_data.decode('utf-8'))
             
-            import time
-            job_data['applied_timestamp'] = time.time()
+            try:
+                conn = sqlite3.connect(DB_NAME)
+                c = conn.cursor()
+                c.execute("INSERT OR REPLACE INTO applied_jobs (id, title, company, url, applied_timestamp, status) VALUES (?, ?, ?, ?, ?, ?)",
+                          (job_data['id'], job_data.get('title',''), job_data.get('company',''), job_data.get('url',''), time.time(), 'Applied'))
+                conn.commit()
+                conn.close()
+                self._send_json({"status": "success"})
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                
+        elif self.path.startswith('/api/update_status/'):
+            job_id = self.path.split('/')[-1]
+            content_length = int(self.headers['Content-Length'])
+            post_data = json.loads(self.rfile.read(content_length).decode('utf-8'))
+            new_status = post_data.get('status', 'Applied')
             
             try:
-                with open('state.json', 'r') as f:
-                    state = json.load(f)
-                
-                if 'applied_jobs' not in state:
-                    state['applied_jobs'] = []
-                
-                # Check if already applied (handling transition from string IDs to objects)
-                already_applied = False
-                for i, existing in enumerate(state['applied_jobs']):
-                    if isinstance(existing, str) and existing == job_data['id']:
-                        state['applied_jobs'][i] = job_data # Upgrade it to object
-                        already_applied = True
-                    elif isinstance(existing, dict) and existing.get('id') == job_data['id']:
-                        already_applied = True
-                        
-                if not already_applied:
-                    state['applied_jobs'].append(job_data)
-                    
-                with open('state.json', 'w') as f:
-                    json.dump(state, f, indent=2)
+                conn = sqlite3.connect(DB_NAME)
+                c = conn.cursor()
+                c.execute("UPDATE applied_jobs SET status = ? WHERE id = ?", (new_status, job_id))
+                conn.commit()
+                conn.close()
                 self._send_json({"status": "success"})
             except Exception as e:
                 self.send_response(500)

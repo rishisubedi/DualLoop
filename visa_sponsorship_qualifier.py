@@ -88,12 +88,15 @@ def run_visa_sponsorship_qualifier():
     
     qualified_jobs = []
     
-    # Load applied jobs to filter them out
-    applied_jobs = []
+    # Load applied jobs from SQLite to filter them out
+    applied_jobs = set()
     try:
-        with open("state.json", "r") as f:
-            state = json.load(f)
-            applied_jobs = state.get('applied_jobs', [])
+        import sqlite3
+        conn = sqlite3.connect('career_agent.db')
+        c = conn.cursor()
+        c.execute("SELECT id FROM applied_jobs")
+        applied_jobs = {r[0] for r in c.fetchall()}
+        conn.close()
     except:
         pass
     
@@ -105,6 +108,7 @@ def run_visa_sponsorship_qualifier():
         # 1. Negative Guardrail
         if "unable to provide" in desc or "no sponsorship" in desc or "right to work required" in desc:
             continue
+            
         if job['id'] in applied_jobs:
             continue
             

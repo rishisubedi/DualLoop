@@ -183,8 +183,7 @@
                 document.getElementById('stat-scraped').innerText = state.metrics.jobs_scraped || 0;
                 
                 // Qualified + Applied
-                const appliedCount = state.applied_jobs ? state.applied_jobs.length : 0;
-                document.getElementById('stat-qualified').innerText = (state.metrics.jobs_qualified || 0) + appliedCount;
+                document.getElementById('stat-qualified').innerText = (state.metrics.jobs_qualified || 0) + (state.applied_db_count || 0);
                 
                 document.getElementById('stat-tailored').innerText = state.metrics.applications_tailored || 0;
             } catch (e) { }
@@ -205,31 +204,57 @@
                 const now = Date.now() / 1000;
                 
                 appliedJobs.forEach(job => {
-                    if (typeof job === 'string') return; // skip bad old state
-                    
                     const daysSince = (now - job.applied_timestamp) / (60 * 60 * 24);
                     let followUpHtml = "";
                     let cardStyle = "background: rgba(255, 255, 255, 0.02); border: 1px dashed rgba(255,255,255,0.2); margin-bottom: 1rem; border-radius: 8px; padding: 1.5rem; display: flex; justify-content: space-between;";
                     
-                    if (daysSince >= 2) {
+                    if (job.status === 'Applied' && daysSince >= 2) {
                         cardStyle = "background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.5); margin-bottom: 1rem; border-radius: 8px; padding: 1.5rem; display: flex; justify-content: space-between;";
                         followUpHtml = `<button class="btn" style="background: #ef4444; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">🚨 Send Follow-up Email</button>`;
-                    } else {
+                    } else if (job.status === 'Applied') {
                         followUpHtml = `<span style="color: #10b981; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem;"><span>⏳</span> Waiting on employer (${Math.floor(daysSince)} days)</span>`;
                     }
+                    
+                    let statusColor = "#3b82f6";
+                    if (job.status === 'Interviewing') statusColor = "#f59e0b";
+                    else if (job.status === 'Offer') statusColor = "#10b981";
+                    else if (job.status === 'Rejected') { statusColor = "#ef4444"; cardStyle = "background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255,255,255,0.05); margin-bottom: 1rem; border-radius: 8px; padding: 1.5rem; display: flex; justify-content: space-between; opacity: 0.5;"; }
+                    
+                    let statusSelect = `
+                        <select onchange="updateJobStatus('${job.id}', this.value)" style="background: rgba(0,0,0,0.5); color: ${statusColor}; border: 1px solid ${statusColor}; padding: 0.4rem; border-radius: 4px; outline: none; font-weight: bold; font-size: 0.85rem; cursor: pointer;">
+                            <option value="Applied" ${job.status === 'Applied' ? 'selected' : ''}>Applied</option>
+                            <option value="Interviewing" ${job.status === 'Interviewing' ? 'selected' : ''}>Interviewing</option>
+                            <option value="Offer" ${job.status === 'Offer' ? 'selected' : ''}>Offer</option>
+                            <option value="Rejected" ${job.status === 'Rejected' ? 'selected' : ''}>Rejected</option>
+                        </select>
+                    `;
                     
                     container.innerHTML += `
                     <div style="${cardStyle}">
                         <div class="job-info">
-                            <h3 style="color: #cbd5e1; margin-bottom: 0.25rem;">[APPLIED] ${job.title}</h3>
+                            <h3 style="color: #cbd5e1; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.75rem;">${statusSelect} <span>${job.title}</span></h3>
                             <div class="job-company" style="color: #94a3b8; font-size: 0.9rem;">${job.company}</div>
                         </div>
-                        <div style="display: flex; flex-direction: column; justify-content: center; align-items: flex-end;">
+                        <div style="display: flex; flex-direction: column; justify-content: center; align-items: flex-end; gap: 0.5rem;">
                             ${followUpHtml}
                         </div>
                     </div>`;
                 });
             } catch (e) {}
+        }
+        
+        async function updateJobStatus(jobId, newStatus) {
+            try {
+                await fetch(`/api/update_status/${jobId}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({status: newStatus})
+                });
+                log(`Updated application status to ${newStatus}`, "INFO");
+                fetchAppliedJobs();
+            } catch(e) {
+                log(`Failed to update status`, "ERROR");
+            }
         }
 
         async function fetchJobs() {
@@ -304,8 +329,6 @@
                 });
                 
                 log(`Recorded application for: ${job.company}`, "INFO");
-                
-                // Refresh the Active Applications view
                 fetchAppliedJobs();
                 fetchState();
             } catch (e) {
