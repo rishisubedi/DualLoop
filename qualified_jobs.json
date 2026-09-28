@@ -1,0 +1,29 @@
+[
+  {
+    "id": "JOB_001",
+    "title": "Senior AI Engineer (FinTech)",
+    "company": "QuantEdge Capital",
+    "location": "London, UK",
+    "description": "We are seeking an AI engineer with deep knowledge of Python, AWS, and RAG architectures. You will build financial risk models using LLMs and LangGraph. Visa sponsorship (Tier 2 Skilled Worker) is available for outstanding international candidates.",
+    "required_skills": [
+      "Python",
+      "AWS",
+      "RAG",
+      "LangGraph",
+      "Financial Risk"
+    ]
+  },
+  {
+    "id": "JOB_003",
+    "title": "Machine Learning Engineer (Fraud & AML)",
+    "company": "Global Payments Ltd",
+    "location": "London, UK",
+    "description": "Join our anti-fraud team. Experience with XGBoost, Python, and AWS is required. We are a licensed UK visa sponsor and can offer full relocation assistance and Tier 2 sponsorship.",
+    "required_skills": [
+      "XGBoost",
+      "Python",
+      "AWS",
+      "Fraud Detection"
+    ]
+  }
+]

@@ -107,8 +107,8 @@
     }
   },
   "metrics": {
-    "jobs_scraped": 0,
-    "jobs_qualified": 0,
+    "jobs_scraped": 4,
+    "jobs_qualified": 2,
     "applications_tailored": 0,
     "applications_submitted": 0,
     "interviews_secured": 0,
