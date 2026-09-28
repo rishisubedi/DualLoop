@@ -6,11 +6,11 @@ Enterprise-grade agentic workflow running on the Antigravity framework to execut
 ## Architecture
 
 ### Loop 1: Job Application Engine (Outbound)
-- **Agent 1 [Sponsorship Qualifier]:** Parses job descriptions to identify visa sponsorship.
-- **Agent 2 [Resume Tailor]:** Maps keywords to Fact Bank and outputs tailored experience.
-- **Agent 3 [Outreach Optimizer]:** Generates bespoke cover letters and recruiter outreach messages.
+- **VisaSponsorshipQualifier:** Parses job descriptions to identify explicit Tier 2 / Graduate Scheme visa sponsorship.
+- **ProfileAlignmentEngine:** Maps keywords from qualified jobs to the Fact Bank and outputs tailored, Pydantic-validated JSON resumes.
+- **OutreachOptimizer:** Generates bespoke cover letters and recruiter outreach messages for platforms like LinkedIn.
 
 ### Loop 2: Daily Skill Booster (Inbound)
-- **Agent 4 [Market Gap Analyzer]:** Identifies skill gaps from rejected or qualified job postings.
-- **Agent 5 [Micro-Challenge Generator]:** Generates daily 15-minute system design/code review problems.
-- **Agent 6 ['Grill-Me' Interviewer]:** Simulates technical/behavioral screening interviews.
+- **MarketGapAnalyzer:** Identifies skill gaps from rejected or qualified job postings based on the current stack.
+- **MicroChallengeGenerator:** Generates daily 15-minute system design/code review problems based on priority skill gaps.
+- **StrictInterviewSim:** Simulates technical/behavioral screening interviews, scoring answers explicitly using the STAR method.
