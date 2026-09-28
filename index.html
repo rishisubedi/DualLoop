@@ -128,7 +128,7 @@
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="stat-qualified">0</div>
-                <div class="stat-label">Sponsorship Verified</div>
+                <div class="stat-label">Roles Verified</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="stat-tailored">0</div>
@@ -138,6 +138,11 @@
 
         <div class="glass-panel">
             <h2>Outbound Loop: Application Engine</h2>
+            
+            <h3 style="color: #cbd5e1; font-size: 1rem; margin-top: 1rem; margin-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">📫 Active Applications (Tracking)</h3>
+            <div id="applied-jobs-container" class="jobs-grid" style="margin-bottom: 2rem;"></div>
+
+            <h3 style="color: #cbd5e1; font-size: 1rem; margin-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">🎯 Action Required (New Roles)</h3>
             <div class="btn-group">
                 <button class="btn" id="btn-agent1" onclick="runAgent('agent1')">Scan Web for Sponsored Roles</button>
                 <button class="btn" id="btn-agent2" onclick="runAgent('agent2')">Generate Tailored Resumes</button>
@@ -161,6 +166,8 @@
     </div>
 
     <script>
+        window.currentJobs = [];
+        
         function log(msg, type="INFO") {
             const term = document.getElementById('terminal');
             const time = new Date().toLocaleTimeString('en-GB');
@@ -173,16 +180,63 @@
             try {
                 const res = await fetch('/api/state');
                 const state = await res.json();
-                document.getElementById('stat-scraped').innerText = state.metrics.jobs_scraped;
-                document.getElementById('stat-qualified').innerText = state.metrics.jobs_qualified;
-                document.getElementById('stat-tailored').innerText = state.metrics.applications_tailored;
+                document.getElementById('stat-scraped').innerText = state.metrics.jobs_scraped || 0;
+                
+                // Qualified + Applied
+                const appliedCount = state.applied_jobs ? state.applied_jobs.length : 0;
+                document.getElementById('stat-qualified').innerText = (state.metrics.jobs_qualified || 0) + appliedCount;
+                
+                document.getElementById('stat-tailored').innerText = state.metrics.applications_tailored || 0;
             } catch (e) { }
+        }
+
+        async function fetchAppliedJobs() {
+            try {
+                const res = await fetch('/api/applied_jobs');
+                const appliedJobs = await res.json();
+                const container = document.getElementById('applied-jobs-container');
+                container.innerHTML = '';
+                
+                if(appliedJobs.length === 0) {
+                    container.innerHTML = `<div style="color: #64748b; font-size: 0.9rem; font-style: italic;">No active applications being tracked.</div>`;
+                    return;
+                }
+                
+                const now = Date.now() / 1000;
+                
+                appliedJobs.forEach(job => {
+                    if (typeof job === 'string') return; // skip bad old state
+                    
+                    const daysSince = (now - job.applied_timestamp) / (60 * 60 * 24);
+                    let followUpHtml = "";
+                    let cardStyle = "background: rgba(255, 255, 255, 0.02); border: 1px dashed rgba(255,255,255,0.2); margin-bottom: 1rem; border-radius: 8px; padding: 1.5rem; display: flex; justify-content: space-between;";
+                    
+                    if (daysSince >= 2) {
+                        cardStyle = "background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.5); margin-bottom: 1rem; border-radius: 8px; padding: 1.5rem; display: flex; justify-content: space-between;";
+                        followUpHtml = `<button class="btn" style="background: #ef4444; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">🚨 Send Follow-up Email</button>`;
+                    } else {
+                        followUpHtml = `<span style="color: #10b981; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem;"><span>⏳</span> Waiting on employer (${Math.floor(daysSince)} days)</span>`;
+                    }
+                    
+                    container.innerHTML += `
+                    <div style="${cardStyle}">
+                        <div class="job-info">
+                            <h3 style="color: #cbd5e1; margin-bottom: 0.25rem;">[APPLIED] ${job.title}</h3>
+                            <div class="job-company" style="color: #94a3b8; font-size: 0.9rem;">${job.company}</div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; justify-content: center; align-items: flex-end;">
+                            ${followUpHtml}
+                        </div>
+                    </div>`;
+                });
+            } catch (e) {}
         }
 
         async function fetchJobs() {
             try {
                 const res = await fetch('/api/qualified_jobs');
                 const jobs = await res.json();
+                window.currentJobs = jobs;
                 const container = document.getElementById('jobs-container');
                 container.innerHTML = '';
                 
@@ -222,24 +276,38 @@
                             </div>
                         </div>`;
                     });
+                } else {
+                    container.innerHTML = `<div style="color: #64748b; font-size: 0.9rem; font-style: italic; margin-top: 1rem;">No new roles found. All tracked roles have been applied to.</div>`;
                 }
             } catch (e) { }
         }
 
         async function markApplied(jobId) {
             try {
+                const job = window.currentJobs.find(j => j.id === jobId);
+                if(!job) return;
+                
                 // Instantly hide the job card in the UI for a snappy UX
                 const card = document.getElementById(`job-card-${jobId}`);
                 if(card) {
                     card.style.opacity = '0.5';
                     card.style.pointerEvents = 'none';
-                    card.innerHTML = `<div style="padding: 2rem; width: 100%; text-align: center; color: #10b981; font-weight: bold;">✔️ Application Recorded</div>`;
+                    card.innerHTML = `<div style="padding: 2rem; width: 100%; text-align: center; color: #10b981; font-weight: bold;">✔️ Application Recorded & Tracked</div>`;
                     setTimeout(() => card.style.display = 'none', 1500);
                 }
                 
                 // Record in backend
-                await fetch(`/api/apply/${jobId}`, { method: 'POST' });
-                log(`Recorded application for job ID: ${jobId}`, "INFO");
+                await fetch(`/api/apply`, { 
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(job)
+                });
+                
+                log(`Recorded application for: ${job.company}`, "INFO");
+                
+                // Refresh the Active Applications view
+                fetchAppliedJobs();
+                fetchState();
             } catch (e) {
                 log(`Failed to record application.`, "ERROR");
             }
@@ -270,7 +338,8 @@
         }
 
         fetchState();
-        fetchJobs(); // Load existing jobs on startup
+        fetchAppliedJobs(); // Load applied jobs immediately
+        fetchJobs();        // Load existing jobs on startup
     </script>
 </body>
 </html>
