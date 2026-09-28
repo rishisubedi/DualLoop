@@ -2,7 +2,7 @@ import json
 import time
 
 def run_agent1():
-    print("Agent 1 [Sponsorship Qualifier]: Initializing semantic sponsorship filter...")
+    print("Agent 1 [Sponsorship Qualifier]: Initializing semantic filter (Sponsorship & 2027 Grad Schemes)...")
     time.sleep(1)
     
     # Mocking real-world scraped jobs for demonstration
@@ -24,54 +24,56 @@ def run_agent1():
             "required_skills": ["Python", "FastAPI", "SQL"]
         },
         {
-            "id": "JOB_003",
-            "title": "Machine Learning Engineer (Fraud & AML)",
-            "company": "Global Payments Ltd",
-            "location": "London, UK",
-            "description": "Join our anti-fraud team. Experience with XGBoost, Python, and AWS is required. We are a licensed UK visa sponsor and can offer full relocation assistance and Tier 2 sponsorship.",
-            "required_skills": ["XGBoost", "Python", "AWS", "Fraud Detection"]
-        },
-        {
-             "id": "JOB_004",
-             "title": "AI Platform Engineer",
-             "company": "HealthTech Startup",
-             "location": "Remote, UK",
-             "description": "Seeking an AI Platform engineer. Must be proficient in Kubernetes and GCP. Competitive salary. Immediate start.",
-             "required_skills": ["Kubernetes", "GCP", "Python"]
+             "id": "JOB_005",
+             "title": "AI Quant Developer - Graduate Scheme (Sept 2027)",
+             "company": "TopTier Hedge Fund",
+             "location": "London, UK",
+             "description": "Our September 2027 Graduate Scheme is now open for applications. Seeking exceptional talent with Python, SQL, and AI modeling skills. We provide full visa sponsorship for our international graduate cohort.",
+             "required_skills": ["Python", "SQL", "AI Modeling"]
         }
     ]
     
-    print(f"Agent 1: Scraped {len(mock_jobs)} job postings. Analyzing for explicit sponsorship flags and skill overlap...\n")
+    print(f"Agent 1: Scraped {len(mock_jobs)} job postings. Analyzing for explicit sponsorship flags, 2027 Grad Schemes, and skill overlap...\n")
     time.sleep(1)
     
     qualified_jobs = []
     
     for job in mock_jobs:
         desc = job['description'].lower()
+        title = job['title'].lower()
+        full_text = desc + " " + title
         
-        # 1. Sponsorship Guardrail
+        # 1. Negative Guardrail
         if "unable to provide" in desc or "no sponsorship" in desc or "must have right to work" in desc:
             print(f"[-] {job['id']} | {job['company']} - {job['title']}")
             print("    Status: PRUNED_NO_SPONSORSHIP (Explicitly denied)")
             continue
             
-        if "visa sponsorship" in desc or "tier 2" in desc or "licensed sponsor" in desc:
+        # 2. Positive Identification (Sponsorship or 2027 Grad Scheme)
+        is_sponsored = "visa sponsorship" in full_text or "tier 2" in full_text or "licensed sponsor" in full_text
+        is_grad_scheme = "graduate scheme" in full_text or "graduate program" in full_text
+        is_2027 = "2027" in full_text
+        
+        if is_sponsored and is_grad_scheme and is_2027:
+            sponsorship_flag = "GRAD_SCHEME_2027_WITH_SPONSORSHIP"
+        elif is_grad_scheme and is_2027:
+             sponsorship_flag = "GRAD_SCHEME_2027_ASSUMED_SPONSOR" # Many top grad schemes sponsor, worth keeping
+        elif is_sponsored:
             sponsorship_flag = "EXPLICIT_SPONSORSHIP"
         else:
             print(f"[-] {job['id']} | {job['company']} - {job['title']}")
-            print("    Status: PRUNED_AMBIGUOUS (No explicitly mentioned sponsorship. Saving compute.)")
+            print("    Status: PRUNED_AMBIGUOUS (No explicit sponsorship or 2027 grad scheme identified.)")
             continue
             
-        # 2. Skill Overlap Check (Baseline check vs User Stack)
-        # Note: A real agent would use embedding similarity here. We simulate a fast keyword match.
-        user_skills = {"python", "aws", "sql", "fastapi", "langgraph", "rag", "xgboost", "shap"}
+        # 3. Skill Overlap Check
+        user_skills = {"python", "aws", "sql", "fastapi", "langgraph", "rag", "xgboost", "shap", "ai modeling"}
         job_skills = {s.lower() for s in job['required_skills']}
         overlap = user_skills.intersection(job_skills)
         match_score = len(overlap) / len(job_skills) if job_skills else 0
         
         if match_score >= 0.5:
             print(f"[+] {job['id']} | {job['company']} - {job['title']}")
-            print(f"    Status: QUALIFIED (Sponsorship: {sponsorship_flag} | Skill Match: {match_score*100:.0f}%)")
+            print(f"    Status: QUALIFIED (Category: {sponsorship_flag} | Skill Match: {match_score*100:.0f}%)")
             qualified_jobs.append(job)
         else:
             print(f"[-] {job['id']} | {job['company']} - {job['title']}")
@@ -88,7 +90,6 @@ def run_agent1():
         with open("state.json", "w") as f:
             json.dump(state, f, indent=2)
             
-        # Output qualified jobs
         with open("qualified_jobs.json", "w") as f:
             json.dump(qualified_jobs, f, indent=2)
             
