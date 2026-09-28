@@ -89,9 +89,19 @@
         .job-card {
             background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color);
             border-radius: 8px; padding: 1.5rem; display: flex; justify-content: space-between;
-            align-items: center; transition: background 0.2s;
+            align-items: center; transition: background 0.2s; margin-bottom: 1rem;
         }
         .job-card:hover { background: rgba(255, 255, 255, 0.06); }
+        
+        .job-card-gold { background: linear-gradient(145deg, rgba(250, 204, 21, 0.15), rgba(20,25,37,1)); border: 1px solid rgba(250, 204, 21, 0.5); box-shadow: 0 4px 15px rgba(250, 204, 21, 0.1); }
+        .job-card-gold:hover { background: linear-gradient(145deg, rgba(250, 204, 21, 0.2), rgba(20,25,37,1)); box-shadow: 0 4px 20px rgba(250, 204, 21, 0.15); }
+        
+        .job-card-silver { background: linear-gradient(145deg, rgba(148, 163, 184, 0.15), rgba(20,25,37,1)); border: 1px solid rgba(148, 163, 184, 0.5); }
+        .job-card-silver:hover { background: linear-gradient(145deg, rgba(148, 163, 184, 0.2), rgba(20,25,37,1)); }
+        
+        .job-card-bronze { background: linear-gradient(145deg, rgba(180, 83, 9, 0.15), rgba(20,25,37,1)); border: 1px solid rgba(180, 83, 9, 0.5); }
+        .job-card-bronze:hover { background: linear-gradient(145deg, rgba(180, 83, 9, 0.2), rgba(20,25,37,1)); }
+        
         .job-info h3 { margin-bottom: 0.25rem; font-size: 1.1rem; color: #fff; }
         .job-company { color: #60a5fa; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; }
         .job-desc { color: #94a3b8; font-size: 0.85rem; line-height: 1.4; max-width: 600px; }
@@ -180,18 +190,19 @@
                     jobs.forEach(job => {
                         let sponsoredClass = job.category.includes('SPONSORED') ? 'badge-sponsored' : 'badge-sponsored';
                         
-                        let tierClass = "badge-tier";
-                        if (job.priority_label.includes('GOLD')) tierClass = "badge-gold";
-                        else if (job.priority_label.includes('SILVER')) tierClass = "badge-silver";
-                        else if (job.priority_label.includes('BRONZE')) tierClass = "badge-bronze";
+                        let tierBadgeClass = "badge-tier";
+                        let cardTierClass = "job-card";
+                        if (job.priority_label.includes('GOLD')) { tierBadgeClass = "badge-gold"; cardTierClass = "job-card job-card-gold"; }
+                        else if (job.priority_label.includes('SILVER')) { tierBadgeClass = "badge-silver"; cardTierClass = "job-card job-card-silver"; }
+                        else if (job.priority_label.includes('BRONZE')) { tierBadgeClass = "badge-bronze"; cardTierClass = "job-card job-card-bronze"; }
                         
                         container.innerHTML += `
-                        <div class="job-card">
+                        <div class="${cardTierClass}">
                             <div class="job-info">
                                 <h3>${job.title}</h3>
                                 <div class="job-company">${job.company}</div>
                                 <div>
-                                    <span class="badge ${tierClass}">${job.priority_label}</span>
+                                    <span class="badge ${tierBadgeClass}">${job.priority_label}</span>
                                     <span class="badge ${sponsoredClass}">${job.category.replace('[','').replace(']','')}</span>
                                 </div>
                                 <div class="job-desc">${job.description}</div>
