@@ -108,6 +108,8 @@ def run_visa_sponsorship_qualifier():
         {"id": "JOB_GRAD5", "title": "Data & Technology Graduate (Sept 2027)", "company": "EDF Energy", "location": "London, UK", "description": "Graduate scheme starting Autumn 2027. AI research applications. Sponsored.", "required_skills": ["Python", "Data", "AI"], "url": "https://careers.edfenergy.com/graduates", "opening_date": get_dynamic_deadline(-20), "deadline": get_dynamic_deadline(60)},
         {"id": "JOB_GRAD6", "title": "FinTech AI Research Analyst 2027", "company": "Revolut", "location": "London, UK", "description": "2027 FinTech Graduate role. AI applied to banking. Full Visa Sponsorship.", "required_skills": ["Python", "AI", "Finance"], "url": "https://careers.revolut.com", "opening_date": get_dynamic_deadline(-2), "deadline": get_dynamic_deadline(30)},
         {"id": "JOB_GRAD7", "title": "Quantitative Developer Graduate 2027", "company": "Citadel", "location": "London, UK", "description": "Build high performance trading systems. Tier 2 sponsorship available.", "required_skills": ["C++", "Python", "Trading"], "url": "https://www.citadel.com/careers", "opening_date": get_dynamic_deadline(-10), "deadline": get_dynamic_deadline(20)},
+        {"id": "JOB_SILVER1", "title": "Data Engineer (Mid-Level)", "company": "FinTech Innovators", "location": "London, UK", "description": "Looking for Python data engineers. Tier 2 Visa Sponsorship available.", "required_skills": ["Python", "AWS"], "url": "https://example.com/silver", "opening_date": get_dynamic_deadline(-5), "deadline": get_dynamic_deadline(10)},
+        {"id": "JOB_BRONZE1", "title": "Logistics Operations Analyst", "company": "UK Retail Group", "location": "Manchester, UK", "description": "General analyst role in supply chain. We provide Tier 2 Sponsorship.", "required_skills": ["Excel", "Operations"], "url": "https://example.com/bronze", "opening_date": get_dynamic_deadline(-1), "deadline": get_dynamic_deadline(25)},
         {"id": "JOB_GRAD8_EXPIRED", "title": "Expired Test Role (Should not show)", "company": "Legacy Corp", "location": "London, UK", "description": "Visa Sponsorship available for 2027 grad scheme.", "required_skills": ["AI"], "url": "https://example.com", "opening_date": get_dynamic_deadline(-60), "deadline": get_dynamic_deadline(-5)}
     ]
     
@@ -142,7 +144,8 @@ def run_visa_sponsorship_qualifier():
         is_sponsored = "visa sponsorship" in full_text or "tier 2" in full_text or "skilled worker" in full_text or "sponsor" in full_text
         is_target_grad = "2027" in full_text or "graduate scheme" in full_text or "early careers" in full_text or "graduates" in full_text
         
-        if is_sponsored and is_target_grad:
+        # Relaxed constraint: Show ALL sponsored roles (Silver and Bronze will now appear)
+        if is_sponsored:
             job['priority_label'] = determine_priority(job['company'], job['description'], job['title'], is_target_grad)
             job['category'] = "[TIER 2 SPONSORED]"
             job['acceptance_rate'] = calculate_acceptance_rate(job)
@@ -151,7 +154,8 @@ def run_visa_sponsorship_qualifier():
     # Sort strictly by acceptance rate descending (highest probability on top)
     qualified_jobs.sort(key=lambda x: x['acceptance_rate'], reverse=True)
     
-    qualified_jobs = qualified_jobs[:5]
+    # Increase visibility to 15 roles so Silver/Bronze are not buried
+    qualified_jobs = qualified_jobs[:15]
 
     with open('qualified_jobs.json', 'w') as f:
         json.dump(qualified_jobs, f, indent=2)
