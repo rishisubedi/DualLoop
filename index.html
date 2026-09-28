@@ -196,6 +196,14 @@
                         else if (job.priority_label.includes('SILVER')) { tierBadgeClass = "badge-silver"; cardTierClass = "job-card job-card-silver"; }
                         else if (job.priority_label.includes('BRONZE')) { tierBadgeClass = "badge-bronze"; cardTierClass = "job-card job-card-bronze"; }
                         
+                        let deadlineHtml = "";
+                        if (job.deadline) {
+                            deadlineHtml = `<div style="color: #ef4444; font-weight: 700; font-size: 0.85rem; margin-top: 0.75rem; display: flex; align-items: center; gap: 0.3rem;">
+                                <span>🚨 Deadline: ${job.deadline}</span>
+                                <span style="color: #94a3b8; font-weight: 400; font-size: 0.75rem;">(Opened: ${job.opening_date})</span>
+                            </div>`;
+                        }
+                        
                         container.innerHTML += `
                         <div class="${cardTierClass}">
                             <div class="job-info">
@@ -206,6 +214,7 @@
                                     <span class="badge ${sponsoredClass}">${job.category.replace('[','').replace(']','')}</span>
                                 </div>
                                 <div class="job-desc">${job.description}</div>
+                                ${deadlineHtml}
                             </div>
                             <div>
                                 <a href="${job.url}" target="_blank" class="btn-apply">Apply Now &rarr;</a>
