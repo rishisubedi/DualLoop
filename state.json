@@ -1,9 +1,110 @@
 {
   "deadline": "2027-09-29T00:00:00Z",
   "user_profile": {
-    "fact_bank": null,
-    "target_location": null,
-    "primary_software_track": null
+    "target_location": [
+      "United Kingdom"
+    ],
+    "primary_software_track": "Financial AI Engineering (AWS, Python, SQL)",
+    "fact_bank": {
+      "name": "Rishi Ram Subedi",
+      "current_location": "London, England, United Kingdom",
+      "summary": "Bridging Quantitative Finance and Generative AI. Master's in Financial Engineering and AI in Business. AWS Solution Architect. Expertise in RAG, LLMs, LangGraph, Python, FastAPI, AWS, and risk analytics.",
+      "education": [
+        {
+          "degree": "MSc Artificial Intelligence in Business",
+          "institution": "University of Hertfordshire",
+          "dates": "Sep 2025 - Oct 2027"
+        },
+        {
+          "degree": "MSc Financial Engineering",
+          "institution": "WorldQuant University",
+          "dates": "Jul 2023 - Jun 2026"
+        },
+        {
+          "degree": "BSc Business Science",
+          "institution": "Nepal Open University (NOU)",
+          "dates": "Aug 2019 - Jun 2023"
+        },
+        {
+          "degree": "BSc Computer Science",
+          "institution": "University of the People",
+          "dates": "Jun 2019 - May 2022"
+        }
+      ],
+      "skills": [
+        "Python",
+        "SQL",
+        "AWS",
+        "FastAPI",
+        "LangGraph",
+        "LangChain",
+        "OpenAI API",
+        "Pinecone",
+        "Milvus",
+        "Docker",
+        "DevOps",
+        "XGBoost",
+        "SHAP",
+        "asyncio"
+      ],
+      "projects": [
+        {
+          "name": "FlowScore API: AI-Powered Open Banking Credit Underwriter",
+          "tech": [
+            "Python",
+            "FastAPI",
+            "LangGraph"
+          ],
+          "description": "Architected a scalable B2B SaaS risk engine to underwrite gig-economy workers via Open Banking using a LangGraph Fan-Out/Fan-In multi-agent workflow."
+        },
+        {
+          "name": "Real-Time APP Fraud Detection Engine",
+          "tech": [
+            "Python",
+            "XGBoost",
+            "SHAP",
+            "asyncio"
+          ],
+          "description": "Production-grade ML pipeline to identify APP fraud patterns, optimizing API concurrency by offloading inference."
+        },
+        {
+          "name": "Glass-Box Audit: Neuro-Symbolic Logic Layer",
+          "tech": [
+            "Python",
+            "RegEx",
+            "JSON"
+          ],
+          "description": "Deterministic symbolic logic engine to audit and validate generative AI financial outputs in real-time."
+        }
+      ],
+      "experience": [
+        {
+          "role": "Generative AI Engineer",
+          "company": "Upwork",
+          "dates": "Sep 2024 - Aug 2025"
+        },
+        {
+          "role": "Solution Architect Apprentice",
+          "company": "Adex International",
+          "dates": "Feb 2025 - Apr 2025"
+        },
+        {
+          "role": "IT Project Manager",
+          "company": "WriteLion Pvt. Ltd.",
+          "dates": "May 2023 - Sep 2024"
+        },
+        {
+          "role": "Data Analyst",
+          "company": "ContentioLab",
+          "dates": "Jul 2020 - May 2022"
+        },
+        {
+          "role": "Data Specialist",
+          "company": "CloudFactory",
+          "dates": "Jul 2018 - Jul 2020"
+        }
+      ]
+    }
   },
   "metrics": {
     "jobs_scraped": 0,
@@ -13,5 +114,5 @@
     "interviews_secured": 0,
     "skill_gaps": []
   },
-  "pipeline_state": "INITIALIZED"
+  "pipeline_state": "FACT_BANK_LOADED"
 }
