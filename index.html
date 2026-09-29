@@ -140,16 +140,16 @@
         
         <div class="stats-grid" id="stats-container">
             <div class="stat-card">
-                <div class="stat-value" id="stat-scraped">0</div>
-                <div class="stat-label">Web Jobs Scraped</div>
+                <div class="stat-value" id="stat-new-roles">0</div>
+                <div class="stat-label">New Roles Available</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="stat-qualified">0</div>
-                <div class="stat-label">Roles Verified</div>
+                <div class="stat-value" id="stat-total-applied">0</div>
+                <div class="stat-label">Total Applications Sent</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="stat-tailored">0</div>
-                <div class="stat-label">Resumes Tailored</div>
+                <div class="stat-value" id="stat-pipeline-health">0</div>
+                <div class="stat-label">Pipeline Health (Interviews & Offers)</div>
             </div>
         </div>
 
@@ -200,12 +200,14 @@
             try {
                 const res = await fetch('/api/state');
                 const state = await res.json();
-                document.getElementById('stat-scraped').innerText = state.metrics.jobs_scraped || 0;
                 
-                // Qualified + Applied
-                document.getElementById('stat-qualified').innerText = (state.metrics.jobs_qualified || 0) + (state.applied_db_count || 0);
+                document.getElementById('stat-new-roles').innerText = state.new_jobs_count || 0;
+                document.getElementById('stat-total-applied').innerText = state.applied_db_count || 0;
                 
-                document.getElementById('stat-tailored').innerText = state.metrics.applications_tailored || 0;
+                const interviewing = (state.status_counts && state.status_counts['Interviewing']) || 0;
+                const offer = (state.status_counts && state.status_counts['Offer']) || 0;
+                document.getElementById('stat-pipeline-health').innerText = interviewing + offer;
+                
             } catch (e) { }
         }
 

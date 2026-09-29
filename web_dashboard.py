@@ -47,12 +47,32 @@ class AgentDashboardHandler(http.server.SimpleHTTPRequestHandler):
                 with open('state.json', 'r') as f:
                     state = json.load(f)
                 
-                # Get accurate applied count from DB
                 conn = sqlite3.connect(DB_NAME)
                 c = conn.cursor()
+                
+                # Detailed status counts
+                c.execute("SELECT status, COUNT(*) FROM applied_jobs GROUP BY status")
+                status_counts = dict(c.fetchall())
+                
+                # Total applied
                 c.execute("SELECT COUNT(*) FROM applied_jobs")
-                state['applied_db_count'] = c.fetchone()[0]
+                total_applied = c.fetchone()[0]
+                
+                # New roles found
+                try:
+                    with open('qualified_jobs.json', 'r') as qf:
+                        q_jobs = json.load(qf)
+                    c.execute("SELECT id FROM applied_jobs")
+                    applied_ids = {r[0] for r in c.fetchall()}
+                    new_jobs_count = len([j for j in q_jobs if j.get('id') not in applied_ids])
+                except Exception:
+                    new_jobs_count = 0
+                    
                 conn.close()
+                
+                state['applied_db_count'] = total_applied
+                state['status_counts'] = status_counts
+                state['new_jobs_count'] = new_jobs_count
                 
                 self.wfile.write(json.dumps(state).encode())
             except Exception as e:
