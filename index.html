@@ -28,7 +28,7 @@
             padding: 3rem 1.5rem;
         }
 
-        .container { max-width: 1000px; margin: 0 auto; }
+        .container { max-width: 1200px; margin: 0 auto; }
 
         h1 {
             font-weight: 700; font-size: 2.5rem; margin-bottom: 0.5rem;
@@ -109,7 +109,7 @@
             display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; 
             font-size: 0.75rem; font-weight: 700; margin-right: 0.5rem; margin-bottom: 0.5rem;
         }
-        .badge-sponsored { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .badge-sponsored { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
         .badge-gold { background: rgba(250, 204, 21, 0.2); color: #facc15; border: 1px solid rgba(250, 204, 21, 0.4); }
         .badge-silver { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.4); }
         .badge-bronze { background: rgba(180, 83, 9, 0.2); color: #fb923c; border: 1px solid rgba(180, 83, 9, 0.4); }
@@ -129,11 +129,73 @@
         .markdown-body table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
         .markdown-body th, .markdown-body td { padding: 0.75rem; border: 1px solid rgba(255,255,255,0.1); text-align: left; }
         .markdown-body th { background: rgba(255,255,255,0.05); color: #e2e8f0; }
+
+        /* KANBAN STYLES */
+        .kanban-board {
+            display: flex; gap: 1rem; margin-top: 1rem; overflow-x: auto; padding-bottom: 1rem;
+        }
+        .kanban-col {
+            flex: 1; min-width: 250px; background: rgba(0,0,0,0.2); border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column;
+        }
+        .kanban-header {
+            padding: 1rem; font-weight: 600; font-size: 0.9rem; text-transform: uppercase;
+            letter-spacing: 1px; color: #94a3b8; border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .kanban-body {
+            padding: 1rem; flex-grow: 1; min-height: 150px; display: flex; flex-direction: column; gap: 0.75rem;
+        }
+        .kanban-card {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px; padding: 1rem; cursor: grab; position: relative; transition: all 0.2s;
+        }
+        .kanban-card:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2); }
+        .kanban-card h4 { font-size: 0.95rem; margin-bottom: 0.25rem; color: #fff; }
+        .kanban-card .co { font-size: 0.8rem; color: #60a5fa; font-weight: 600; }
         
+        .kanban-card.Applied { border-left: 3px solid #3b82f6; }
+        .kanban-card.Interviewing { border-left: 3px solid #f59e0b; }
+        .kanban-card.Offer { border-left: 3px solid #10b981; }
+        .kanban-card.Rejected { border-left: 3px solid #ef4444; opacity: 0.6; }
+
+        /* MODAL STYLES */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal {
+            background: #0f172a; border: 1px solid #334155; border-radius: 12px;
+            padding: 2rem; width: 600px; max-width: 90%; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        }
+        .modal h2 { margin-bottom: 1rem; color: #fff; display: flex; justify-content: space-between; align-items: center; }
+        .modal textarea {
+            width: 100%; height: 250px; background: rgba(0,0,0,0.3); border: 1px solid #334155;
+            color: #e2e8f0; font-family: 'Inter', sans-serif; padding: 1rem; border-radius: 8px;
+            resize: none; outline: none; margin-bottom: 1rem; font-size: 0.9rem; line-height: 1.5;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
+
+    <!-- Email Generator Modal -->
+    <div class="modal-overlay" id="emailModal">
+        <div class="modal">
+            <h2>
+                <span>✉️ Generated Follow-Up</span>
+                <button onclick="closeModal()" style="background: none; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </h2>
+            <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 1rem;">This email has been dynamically tailored for your profile and this specific application.</p>
+            <textarea id="emailContent" readonly>Loading...</textarea>
+            <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+                <button class="btn" style="background: transparent; color: #94a3b8; border-color: #334155;" onclick="closeModal()">Close</button>
+                <button class="btn" onclick="copyEmail()">📋 Copy to Clipboard</button>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <h1>Dual-Loop Agent Control Center</h1>
         <p class="subtitle">Enterprise-grade autonomous career progression framework.</p>
@@ -156,13 +218,33 @@
         <div class="glass-panel">
             <h2>Outbound Loop: Application Engine</h2>
             
-            <h3 style="color: #cbd5e1; font-size: 1rem; margin-top: 1rem; margin-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">📫 Active Applications (Tracking)</h3>
-            <div id="applied-jobs-container" class="jobs-grid" style="margin-bottom: 2rem;"></div>
+            <h3 style="color: #cbd5e1; font-size: 1rem; margin-top: 1rem; margin-bottom: 0.5rem;">📫 Pipeline Kanban Board</h3>
+            
+            <div class="kanban-board">
+                <div class="kanban-col" ondragover="allowDrop(event)" ondrop="drop(event, 'Applied')">
+                    <div class="kanban-header">Applied <span id="cnt-Applied" style="color:#3b82f6">0</span></div>
+                    <div class="kanban-body" id="col-Applied"></div>
+                </div>
+                
+                <div class="kanban-col" ondragover="allowDrop(event)" ondrop="drop(event, 'Interviewing')">
+                    <div class="kanban-header">Interviewing <span id="cnt-Interviewing" style="color:#f59e0b">0</span></div>
+                    <div class="kanban-body" id="col-Interviewing"></div>
+                </div>
+                
+                <div class="kanban-col" ondragover="allowDrop(event)" ondrop="drop(event, 'Offer')">
+                    <div class="kanban-header">Offer <span id="cnt-Offer" style="color:#10b981">0</span></div>
+                    <div class="kanban-body" id="col-Offer"></div>
+                </div>
+                
+                <div class="kanban-col" ondragover="allowDrop(event)" ondrop="drop(event, 'Rejected')">
+                    <div class="kanban-header">Rejected <span id="cnt-Rejected" style="color:#ef4444">0</span></div>
+                    <div class="kanban-body" id="col-Rejected"></div>
+                </div>
+            </div>
 
-            <h3 style="color: #cbd5e1; font-size: 1rem; margin-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">🎯 Action Required (New Roles)</h3>
+            <h3 style="color: #cbd5e1; font-size: 1rem; margin-bottom: 0.5rem; margin-top: 2rem;">🎯 Action Required (New Roles)</h3>
             <div class="btn-group">
                 <button class="btn" id="btn-agent1" onclick="runAgent('agent1')">Scan Web for Sponsored Roles</button>
-                <button class="btn" id="btn-agent2" onclick="runAgent('agent2')">Generate Tailored Resumes</button>
             </div>
             <div id="jobs-container" class="jobs-grid"></div>
         </div>
@@ -187,6 +269,7 @@
 
     <script>
         window.currentJobs = [];
+        const now = Date.now() / 1000;
         
         function log(msg, type="INFO") {
             const term = document.getElementById('terminal');
@@ -211,91 +294,116 @@
             } catch (e) { }
         }
 
-        async function fetchAppliedJobs() {
-            try {
-                const res = await fetch('/api/applied_jobs');
-                const appliedJobs = await res.json();
-                const container = document.getElementById('applied-jobs-container');
-                container.innerHTML = '';
-                
-                if(appliedJobs.length === 0) {
-                    container.innerHTML = `<div style="color: #64748b; font-size: 0.9rem; font-style: italic;">No active applications being tracked.</div>`;
-                    return;
-                }
-                
-                const now = Date.now() / 1000;
-                
-                appliedJobs.forEach(job => {
-                    const daysSince = (now - job.applied_timestamp) / (60 * 60 * 24);
-                    let followUpHtml = "";
-                    let cardStyle = "background: rgba(255, 255, 255, 0.02); border: 1px dashed rgba(255,255,255,0.2); margin-bottom: 1rem; border-radius: 8px; padding: 1.5rem; display: flex; justify-content: space-between;";
-                    
-                    if (job.status === 'Applied' && daysSince >= 2) {
-                        cardStyle = "background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.5); margin-bottom: 1rem; border-radius: 8px; padding: 1.5rem; display: flex; justify-content: space-between;";
-                        followUpHtml = `<button class="btn" style="background: #ef4444; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">🚨 Send Follow-up Email</button>`;
-                    } else if (job.status === 'Applied') {
-                        followUpHtml = `<span style="color: #10b981; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem;"><span>⏳</span> Waiting on employer (${Math.floor(daysSince)} days)</span>`;
-                    }
-                    
-                    let statusColor = "#3b82f6";
-                    if (job.status === 'Interviewing') statusColor = "#f59e0b";
-                    else if (job.status === 'Offer') statusColor = "#10b981";
-                    else if (job.status === 'Rejected') { statusColor = "#ef4444"; cardStyle = "background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255,255,255,0.05); margin-bottom: 1rem; border-radius: 8px; padding: 1.5rem; display: flex; justify-content: space-between; opacity: 0.5;"; }
-                    
-                    let statusSelect = `
-                        <select onchange="updateJobStatus('${job.id}', this.value)" style="background: rgba(0,0,0,0.5); color: ${statusColor}; border: 1px solid ${statusColor}; padding: 0.4rem; border-radius: 4px; outline: none; font-weight: bold; font-size: 0.85rem; cursor: pointer;">
-                            <option value="Applied" ${job.status === 'Applied' ? 'selected' : ''}>Applied</option>
-                            <option value="Interviewing" ${job.status === 'Interviewing' ? 'selected' : ''}>Interviewing</option>
-                            <option value="Offer" ${job.status === 'Offer' ? 'selected' : ''}>Offer</option>
-                            <option value="Rejected" ${job.status === 'Rejected' ? 'selected' : ''}>Rejected</option>
-                        </select>
-                    `;
-                    
-                    container.innerHTML += `
-                    <div style="${cardStyle}" id="applied-card-${job.id}">
-                        <div class="job-info">
-                            <h3 style="color: #cbd5e1; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.75rem;">${statusSelect} <span>${job.title}</span></h3>
-                            <div class="job-company" style="color: #94a3b8; font-size: 0.9rem;">${job.company}</div>
-                        </div>
-                        <div style="display: flex; flex-direction: column; justify-content: center; align-items: flex-end; gap: 0.5rem;">
-                            ${followUpHtml}
-                            <button onclick="removeApplication('${job.id}')" style="background: transparent; border: none; color: #64748b; font-size: 1rem; cursor: pointer; transition: color 0.2s; margin-top: 0.25rem;" title="Remove Application">🗑️</button>
-                        </div>
-                    </div>`;
-                });
-            } catch (e) {}
+        // Kanban Drag and Drop Logic
+        function allowDrop(ev) { ev.preventDefault(); }
+        
+        function drag(ev) {
+            ev.dataTransfer.setData("text", ev.target.id.replace('kanban-', ''));
         }
         
-        async function updateJobStatus(jobId, newStatus) {
+        async function drop(ev, newStatus) {
+            ev.preventDefault();
+            const jobId = ev.dataTransfer.getData("text");
+            // Optimistic UI Update
+            const card = document.getElementById(`kanban-${jobId}`);
+            if(card) {
+                card.className = `kanban-card ${newStatus}`;
+                const targetCol = document.getElementById(`col-${newStatus}`);
+                if(targetCol) targetCol.appendChild(card);
+            }
+            
             try {
                 await fetch(`/api/update_status/${jobId}`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({status: newStatus})
                 });
-                log(`Updated application status to ${newStatus}`, "INFO");
-                fetchAppliedJobs();
+                log(`Moved application to ${newStatus}`, "INFO");
+                fetchAppliedJobs(); // Re-render to ensure counts and states are fully synced
             } catch(e) {
                 log(`Failed to update status`, "ERROR");
             }
         }
 
+        async function fetchAppliedJobs() {
+            try {
+                const res = await fetch('/api/applied_jobs');
+                const appliedJobs = await res.json();
+                
+                // Clear all columns
+                ['Applied', 'Interviewing', 'Offer', 'Rejected'].forEach(s => {
+                    document.getElementById(`col-${s}`).innerHTML = '';
+                    document.getElementById(`cnt-${s}`).innerText = '0';
+                });
+                
+                const counts = {'Applied':0, 'Interviewing':0, 'Offer':0, 'Rejected':0};
+                
+                appliedJobs.forEach(job => {
+                    const status = job.status || 'Applied';
+                    counts[status]++;
+                    
+                    const daysSince = (now - job.applied_timestamp) / (60 * 60 * 24);
+                    let followUpHtml = "";
+                    
+                    if (status === 'Applied' && daysSince >= 2) {
+                        followUpHtml = `<button onclick="openEmailModal('${job.id}')" style="background: #ef4444; color: white; border: none; padding: 0.3rem 0.5rem; border-radius: 4px; font-weight: 600; font-size: 0.75rem; cursor: pointer; margin-top: 0.5rem; width: 100%;">🚨 Follow-Up Email</button>`;
+                    }
+                    
+                    const cardHtml = `
+                    <div class="kanban-card ${status}" id="kanban-${job.id}" draggable="true" ondragstart="drag(event)">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <h4>${job.title}</h4>
+                            <button onclick="removeApplication('${job.id}')" style="background:none; border:none; color: #64748b; cursor:pointer;" title="Delete">🗑️</button>
+                        </div>
+                        <div class="co">${job.company}</div>
+                        ${followUpHtml}
+                    </div>`;
+                    
+                    document.getElementById(`col-${status}`).innerHTML += cardHtml;
+                });
+                
+                ['Applied', 'Interviewing', 'Offer', 'Rejected'].forEach(s => {
+                    document.getElementById(`cnt-${s}`).innerText = counts[s];
+                });
+                
+                fetchState();
+            } catch (e) {}
+        }
+
+        async function openEmailModal(jobId) {
+            const modal = document.getElementById('emailModal');
+            const textarea = document.getElementById('emailContent');
+            textarea.value = "Generating tailored follow-up... \n\nConnecting to backend...";
+            modal.style.display = 'flex';
+            
+            try {
+                const res = await fetch(`/api/generate_email/${jobId}`, {method: 'POST'});
+                const data = await res.json();
+                if(data.email) {
+                    textarea.value = data.email;
+                    log(`Generated 1-Click Cold Email for ${jobId}`, "INFO");
+                } else {
+                    textarea.value = "Error generating email.";
+                }
+            } catch (e) {
+                textarea.value = "Failed to fetch from backend.";
+            }
+        }
+        
+        function closeModal() { document.getElementById('emailModal').style.display = 'none'; }
+        
+        function copyEmail() {
+            const textarea = document.getElementById('emailContent');
+            textarea.select();
+            document.execCommand('copy');
+            log(`Copied follow-up email to clipboard!`, "INFO");
+        }
+
         async function removeApplication(jobId) {
             try {
-                const card = document.getElementById(`applied-card-${jobId}`);
-                if(card) {
-                    card.style.opacity = '0.5';
-                    card.style.pointerEvents = 'none';
-                    setTimeout(() => card.style.display = 'none', 500);
-                }
-                
                 await fetch(`/api/remove_application/${jobId}`, { method: 'POST' });
                 log(`Removed application ID from tracker.`, "INFO");
-                
-                setTimeout(() => {
-                    fetchAppliedJobs();
-                    fetchState();
-                }, 500);
+                fetchAppliedJobs();
             } catch (e) {}
         }
 
@@ -309,28 +417,16 @@
                 
                 if(jobs.length > 0) {
                     jobs.forEach(job => {
-                        let sponsoredClass = job.category.includes('SPONSORED') ? 'badge-sponsored' : 'badge-sponsored';
-                        
+                        let sponsoredClass = 'badge-sponsored';
                         let tierBadgeClass = "badge-tier";
                         let cardTierClass = "job-card";
+                        
                         if (job.priority_label.includes('GOLD')) { tierBadgeClass = "badge-gold"; cardTierClass = "job-card job-card-gold"; }
                         else if (job.priority_label.includes('SILVER')) { tierBadgeClass = "badge-silver"; cardTierClass = "job-card job-card-silver"; }
                         else if (job.priority_label.includes('BRONZE')) { tierBadgeClass = "badge-bronze"; cardTierClass = "job-card job-card-bronze"; }
                         
-                        let deadlineHtml = "";
-                        if (job.deadline) {
-                            deadlineHtml = `<div style="color: #ef4444; font-weight: 700; font-size: 0.85rem; margin-top: 0.75rem; display: flex; align-items: center; gap: 0.3rem;">
-                                <span>🚨 Deadline: ${job.deadline}</span>
-                                <span style="color: #94a3b8; font-weight: 400; font-size: 0.75rem;">(Opened: ${job.opening_date})</span>
-                            </div>`;
-                        }
-                        
-                        let rateHtml = "";
-                        if (job.acceptance_rate) {
-                            rateHtml = `<div style="color: #38bdf8; font-weight: 800; font-size: 0.95rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.3rem; letter-spacing: 0.5px;">
-                                <span>⚡ Match Probability: ${job.acceptance_rate}%</span>
-                            </div>`;
-                        }
+                        let deadlineHtml = job.deadline ? `<div style="color: #ef4444; font-weight: 700; font-size: 0.85rem; margin-top: 0.75rem;">🚨 Deadline: ${job.deadline}</div>` : "";
+                        let rateHtml = job.acceptance_rate ? `<div style="color: #38bdf8; font-weight: 800; font-size: 0.95rem; margin-bottom: 0.5rem;">⚡ Match Probability: ${job.acceptance_rate}%</div>` : "";
                         
                         container.innerHTML += `
                         <div class="${cardTierClass}" id="job-card-${job.id}">
@@ -340,7 +436,7 @@
                                 ${rateHtml}
                                 <div>
                                     <span class="badge ${tierBadgeClass}">${job.priority_label}</span>
-                                    <span class="badge ${sponsoredClass}">${job.category.replace('[','').replace(']','')}</span>
+                                    <span class="badge ${sponsoredClass}">✔️ UK GOV SPONSOR (TIER 2)</span>
                                 </div>
                                 <div class="job-desc">${job.description}</div>
                                 ${deadlineHtml}
@@ -352,7 +448,7 @@
                         </div>`;
                     });
                 } else {
-                    container.innerHTML = `<div style="color: #64748b; font-size: 0.9rem; font-style: italic; margin-top: 1rem;">No new roles found. All tracked roles have been applied to.</div>`;
+                    container.innerHTML = `<div style="color: #64748b; font-style: italic; margin-top: 1rem;">No new roles found.</div>`;
                 }
             } catch (e) { }
         }
@@ -361,29 +457,20 @@
             try {
                 const job = window.currentJobs.find(j => j.id === jobId);
                 if(!job) return;
-                
-                // Instantly hide the job card in the UI for a snappy UX
                 const card = document.getElementById(`job-card-${jobId}`);
                 if(card) {
                     card.style.opacity = '0.5';
                     card.style.pointerEvents = 'none';
-                    card.innerHTML = `<div style="padding: 2rem; width: 100%; text-align: center; color: #10b981; font-weight: bold;">✔️ Application Recorded & Tracked</div>`;
-                    setTimeout(() => card.style.display = 'none', 1500);
+                    setTimeout(() => card.style.display = 'none', 1000);
                 }
-                
-                // Record in backend
                 await fetch(`/api/apply`, { 
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(job)
                 });
-                
                 log(`Recorded application for: ${job.company}`, "INFO");
                 fetchAppliedJobs();
-                fetchState();
-            } catch (e) {
-                log(`Failed to record application.`, "ERROR");
-            }
+            } catch (e) {}
         }
 
         async function fetchPrepMaterial() {
@@ -396,9 +483,7 @@
                 } else {
                     container.innerHTML = marked.parse(text);
                 }
-            } catch (e) {
-                console.error("Failed to load prep material");
-            }
+            } catch (e) {}
         }
 
         async function runAgent(agentId) {
@@ -412,9 +497,7 @@
                 const data = await res.json();
                 if(data.log) {
                     const lines = data.log.split('\n');
-                    for(let line of lines) {
-                        if(line.trim() !== '') log(line, "OUTPUT");
-                    }
+                    for(let line of lines) { if(line.trim() !== '') log(line, "OUTPUT"); }
                 }
                 await fetchState();
                 if(agentId === 'agent1') await fetchJobs();
@@ -429,7 +512,7 @@
         fetchState();
         fetchAppliedJobs();
         fetchJobs();
-        fetchPrepMaterial(); // Load prep on startup
+        fetchPrepMaterial();
     </script>
 </body>
 </html>

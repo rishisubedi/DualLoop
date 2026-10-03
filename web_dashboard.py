@@ -198,6 +198,26 @@ class AgentDashboardHandler(http.server.SimpleHTTPRequestHandler):
             except Exception as e:
                 self.send_response(500)
                 self.end_headers()
+                
+        elif self.path.startswith('/api/generate_email/'):
+            job_id = self.path.split('/')[-1]
+            try:
+                conn = sqlite3.connect(DB_NAME)
+                c = conn.cursor()
+                c.execute("SELECT title, company FROM applied_jobs WHERE id=?", (job_id,))
+                row = c.fetchone()
+                conn.close()
+                if row:
+                    title, company = row
+                    email = f"Subject: Following up - {title} Application\n\nDear Hiring Team at {company},\n\nI recently applied for the {title} position and wanted to reiterate my strong interest in joining your team. Given my background in Quantitative Finance and GenAI (including building production-grade LangGraph and XGBoost systems), I am confident in my ability to deliver immediate value to {company}.\n\nPlease let me know if you need any additional information or if you'd like to schedule a quick chat.\n\nBest regards,\nRishi Ram Subedi"
+                    self._send_json({"email": email})
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                
         else:
             self.send_response(404)
             self.end_headers()
